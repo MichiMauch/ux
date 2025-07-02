@@ -3,10 +3,9 @@ import { MAX_SCORE } from "@/lib/scoring";
 
 interface ScoreDisplayProps {
   score: number;
-  categoryScores: Record<string, number>;
 }
 
-export function ScoreDisplay({ score, categoryScores }: ScoreDisplayProps) {
+export function ScoreDisplay({ score }: ScoreDisplayProps) {
   const percentage = Math.round((score / MAX_SCORE) * 100);
 
   return (

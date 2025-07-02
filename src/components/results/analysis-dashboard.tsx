@@ -57,7 +57,26 @@ export function AnalysisDashboard({
 
   // Wenn zusätzliche Checks angezeigt werden sollen
   if (showAdditionalChecks) {
-    return <AdditionalChecks analysis={analysis} onNewCheck={onNewAnalysis} />;
+    // Mock-Daten für zusätzliche Checks basierend auf der Analyse
+    const additionalChecks = [
+      {
+        name: "Responsivität",
+        status: (analysis.overallScore > 80 ? 'passed' : 'warning') as 'passed' | 'failed' | 'warning',
+        description: "Website ist für mobile Geräte optimiert"
+      },
+      {
+        name: "Ladegeschwindigkeit",
+        status: (analysis.overallScore > 70 ? 'passed' : 'failed') as 'passed' | 'failed' | 'warning',
+        description: "Optimierung der Ladezeiten erforderlich"
+      },
+      {
+        name: "Barrierefreiheit",
+        status: (analysis.overallScore > 85 ? 'passed' : 'warning') as 'passed' | 'failed' | 'warning',
+        description: "Einhaltung der WCAG-Richtlinien"
+      }
+    ];
+    
+    return <AdditionalChecks checks={additionalChecks} />;
   }
 
   return (

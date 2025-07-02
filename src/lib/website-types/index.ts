@@ -12,8 +12,6 @@ import { RESTAURANT_CATEGORIES, getRestaurantPrompt } from './restaurant';
 import { PORTFOLIO_CATEGORIES, getPortfolioPrompt } from './portfolio';
 import { PERSONAL_CATEGORIES, getPersonalPrompt } from './personal';
 import { LANDING_CATEGORIES, getLandingPrompt } from './landingpage';
-import { HEATMAP_CATEGORIES, getHeatmapPredictionPrompt } from './heatmap-prediction';
-
 // Export all category arrays
 export {
   CORPORATE_CATEGORIES,
@@ -27,8 +25,7 @@ export {
   RESTAURANT_CATEGORIES,
   PORTFOLIO_CATEGORIES,
   PERSONAL_CATEGORIES,
-  LANDING_CATEGORIES,
-  HEATMAP_CATEGORIES
+  LANDING_CATEGORIES
 };
 
 // Export all prompt functions
@@ -44,8 +41,7 @@ export {
   getRestaurantPrompt,
   getPortfolioPrompt,
   getPersonalPrompt,
-  getLandingPrompt,
-  getHeatmapPredictionPrompt
+  getLandingPrompt
 };
 
 // Helper function to get the appropriate prompt based on website type
