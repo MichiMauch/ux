@@ -157,6 +157,18 @@ export function AnalysisDashboard({
         </CardContent>
       </Card>
 
+      {/* Detailed Scores */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          Detaillierte Bewertung
+        </h2>
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+          {analysis.categories.map((category, index) => (
+            <ScoreCard key={index} category={category} />
+          ))}
+        </div>
+      </div>
+
       {/* Screenshots */}
       {analysis.screenshots && (
         <Card>
@@ -202,18 +214,6 @@ export function AnalysisDashboard({
           </CardContent>
         </Card>
       )}
-
-      {/* Detailed Scores */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Detaillierte Bewertung
-        </h2>
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          {analysis.categories.map((category, index) => (
-            <ScoreCard key={index} category={category} />
-          ))}
-        </div>
-      </div>
 
       {/* Action Buttons */}
       <Card>
