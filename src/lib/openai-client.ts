@@ -18,11 +18,15 @@ export async function analyzeWithOpenAI(
       model: "gpt-4o",
       messages: [
         {
+          role: "system",
+          content: "Du bist ein UX-Experte, der Website-Screenshots analysiert. Du erhältst SCREENSHOTS von Websites im BASE64-Format als Bilder und sollst diese anhand der bereitgestellten Kriterien bewerten. Analysiere AUSSCHLIESSLICH das, was in den Screenshots VISUELL SICHTBAR ist. Du analysierst BILDER, nicht externe Websites. Antworte immer im gewünschten JSON-Format basierend auf dem, was du in den bereitgestellten Screenshots sehen kannst."
+        },
+        {
           role: "user",
           content: [
             {
               type: "text",
-              text: prompt
+              text: `Analysiere die folgenden Screenshots einer Website und bewerte sie nach den angegebenen Kriterien. Du siehst hier Desktop- und Mobile-Screenshots der URL: ${url}. Bewerte nur das, was visuell in den Bildern erkennbar ist.\n\n${prompt}`
             },
             {
               type: "image_url",

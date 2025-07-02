@@ -128,9 +128,10 @@ src/
 │   │   └── score-card.tsx         # Score Karten
 │   └── ui/                        # shadcn/ui Komponenten
 ├── lib/
-│   ├── screenshot-service.ts      # Puppeteer Screenshot Service
-│   ├── openai-client.ts          # OpenAI API Client
-│   └── utils.ts                   # Utility Funktionen
+│   ├── nodehive-screenshot-service.ts  # Nodehive Full-Page Screenshots
+│   ├── openai-client.ts               # OpenAI API Client
+│   ├── website-types/                 # Website-spezifische Prompts
+│   └── utils.ts                       # Utility Funktionen
 └── types/
     └── analysis.ts                # TypeScript Typen
 ```

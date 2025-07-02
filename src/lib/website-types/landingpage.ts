@@ -8,7 +8,9 @@ export const LANDING_CATEGORIES = [
 ];
 
 export function getLandingPrompt(url: string): string {
-  return `Analysiere diese Website-Screenshots (Desktop und Mobile) für Landing Page UX-Qualität der Website: ${url}
+  return `Du erhältst zwei Screenshot-Bilder einer Website (Desktop und Mobile Version) zur Analyse. Analysiere NUR diese bereitgestellten Screenshots für die Landing Page UX-Qualität der Website: ${url}
+
+WICHTIG: Analysiere ausschließlich das was du in den bereitgestellten Screenshots siehst. Versuche NICHT auf externe Websites zuzugreifen.
 
 BEWERTUNGSKRITERIEN (jeweils Score 1-10):
 

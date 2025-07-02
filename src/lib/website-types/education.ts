@@ -8,7 +8,9 @@ export const EDUCATION_CATEGORIES = [
 ];
 
 export function getEducationPrompt(url: string): string {
-  return `Analysiere diese Website-Screenshots (Desktop und Mobile) für Bildungs-/Schul-/Uni UX-Qualität der Website: ${url}
+  return `Du erhältst zwei Screenshot-Bilder einer Website (Desktop und Mobile Version) zur Analyse. Analysiere NUR diese bereitgestellten Screenshots für die Bildungs-/Schul-/Uni UX-Qualität der Website: ${url}
+
+WICHTIG: Analysiere ausschließlich das was du in den bereitgestellten Screenshots siehst. Versuche NICHT auf externe Websites zuzugreifen.
 
 BEWERTUNGSKRITERIEN (jeweils Score 1-10):
 

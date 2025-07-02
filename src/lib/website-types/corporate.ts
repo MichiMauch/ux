@@ -8,7 +8,9 @@ export const CORPORATE_CATEGORIES = [
 ];
 
 export function getCorporatePrompt(url: string): string {
-  return `Analysiere diese Website-Screenshots (Desktop und Mobile) für Corporate UX-Qualität der Website: ${url}
+  return `Du erhältst zwei Screenshot-Bilder einer Website (Desktop und Mobile Version) zur Analyse. Analysiere NUR diese bereitgestellten Screenshots für die Corporate UX-Qualität der Website: ${url}
+
+WICHTIG: Analysiere ausschließlich das was du in den bereitgestellten Screenshots siehst. Versuche NICHT auf externe Websites zuzugreifen.
 
 BEWERTUNGSKRITERIEN (jeweils Score 1-10):
 1. Navigation & Struktur - Ist die Hauptnavigation erkennbar und logisch? Sind Breadcrumbs vorhanden? Ist die Footer-Navigation vollständig?
