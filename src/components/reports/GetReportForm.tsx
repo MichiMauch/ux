@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,11 +57,81 @@ const GetReportForm: React.FC<GetReportFormProps> = ({ url, uxAnalysis, analysis
     { revalidateOnFocus: false }
   );
 
+  const { data: geoCheckData } = useSWR(
+    `/api/geo-check?url=${encodeURIComponent(url)}`,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
   const [analysisData, setAnalysisData] = useState<AnalysisData>({
     uxAnalysis,
     pageSpeedData: undefined,
     metaTagsData: undefined,
+    geoCheckData: undefined,
+    pageSpeedRecommendations: undefined,
+    geoRecommendations: undefined,
   });
+
+  // Function to try loading PageSpeed recommendations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const loadPageSpeedRecommendations = useCallback(async (pageSpeedData: any) => {
+    if (!pageSpeedData?.desktop?.opportunities || pageSpeedData.desktop.opportunities.length === 0) {
+      return null;
+    }
+
+    try {
+      const response = await fetch("/api/pagespeed-recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          opportunities: pageSpeedData.desktop.opportunities,
+          url: url,
+          scores: {
+            performance: pageSpeedData.desktop.performance,
+            accessibility: pageSpeedData.desktop.accessibility,
+            bestPractices: pageSpeedData.desktop.bestPractices,
+            seo: pageSpeedData.desktop.seo,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.recommendations || [];
+      }
+    } catch (error) {
+      console.log("PageSpeed recommendations not available for PDF:", error);
+    }
+    return null;
+  }, [url]);
+
+  // Function to try loading GEO recommendations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const loadGeoRecommendations = useCallback(async (geoData: any) => {
+    if (!geoData?.factors || geoData.factors.length === 0) {
+      return null;
+    }
+
+    try {
+      const response = await fetch("/api/geo-recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          factors: geoData.factors,
+          url: geoData.url || url,
+          score: geoData.score,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.recommendations || [];
+      }
+    } catch (error) {
+      console.log("GEO recommendations not available for PDF:", error);
+    }
+    return null;
+  }, [url]);
 
   useEffect(() => {
     // Combine desktop and mobile data into expected format
@@ -91,12 +161,37 @@ const GetReportForm: React.FC<GetReportFormProps> = ({ url, uxAnalysis, analysis
           }
         : undefined;
 
-    setAnalysisData({
-      uxAnalysis,
-      pageSpeedData: combinedPageSpeedData,
-      metaTagsData: metaTagsData || undefined,
-    });
-  }, [uxAnalysis, pageSpeedDesktopData, pageSpeedMobileData, metaTagsData]);
+    // Process GEO check data if available
+    const processedGeoCheckData = geoCheckData && geoCheckData.success
+      ? {
+          score: geoCheckData.score,
+          factors: geoCheckData.factors,
+          timestamp: geoCheckData.timestamp,
+        }
+      : undefined;
+
+    // Load recommendations asynchronously
+    const loadRecommendations = async () => {
+      const pageSpeedRecs = combinedPageSpeedData 
+        ? await loadPageSpeedRecommendations(combinedPageSpeedData)
+        : null;
+      
+      const geoRecs = processedGeoCheckData 
+        ? await loadGeoRecommendations(processedGeoCheckData)
+        : null;
+
+      setAnalysisData({
+        uxAnalysis,
+        pageSpeedData: combinedPageSpeedData,
+        metaTagsData: metaTagsData || undefined,
+        geoCheckData: processedGeoCheckData,
+        pageSpeedRecommendations: pageSpeedRecs || undefined,
+        geoRecommendations: geoRecs || undefined,
+      });
+    };
+
+    loadRecommendations();
+  }, [uxAnalysis, pageSpeedDesktopData, pageSpeedMobileData, metaTagsData, geoCheckData, loadGeoRecommendations, loadPageSpeedRecommendations]);
 
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

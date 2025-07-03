@@ -5,7 +5,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     let data;
     try {
         data = await req.json();
-        const { analysisId, pageSpeedData, metaTagsData } = data;
+        const { analysisId, pageSpeedData, metaTagsData, geoCheckData } = data;
 
         if (!analysisId) {
             return NextResponse.json({ success: false, error: 'analysisId is required' }, { status: 400 });
@@ -75,6 +75,39 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             console.log(`Meta tags data updated for analysis ${analysisId}`);
         }
 
+        // Update GEO check data if provided
+        if (geoCheckData) {
+            console.log('Received GEO check data:', JSON.stringify(geoCheckData, null, 2));
+
+            // Update the main analysis table with GEO score
+            await tursoClient.execute(
+                'UPDATE analyses SET geo_score = ? WHERE id = ?',
+                [geoCheckData.score, analysisId]
+            );
+
+            // Delete existing GEO factors for this analysis
+            await tursoClient.execute(
+                'DELETE FROM geo_factors WHERE analysis_id = ?',
+                [analysisId]
+            );
+
+            // Insert new GEO factors
+            for (const factor of geoCheckData.factors) {
+                await tursoClient.execute(
+                    'INSERT INTO geo_factors (analysis_id, name, result, weight, comment, details) VALUES (?, ?, ?, ?, ?, ?)',
+                    [
+                        analysisId, 
+                        factor.name, 
+                        factor.result ? 1 : 0, 
+                        factor.weight, 
+                        factor.comment,
+                        factor.details ? JSON.stringify(factor.details) : null
+                    ]
+                );
+            }
+            console.log(`GEO check data updated for analysis ${analysisId}`);
+        }
+
         return NextResponse.json({ 
             success: true, 
             message: 'Analysis updated successfully',
@@ -89,6 +122,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             analysisId: data?.analysisId,
             hasPageSpeedData: !!(data && data.pageSpeedData && data.pageSpeedData.length > 0),
             hasMetaTagsData: !!(data && data.metaTagsData && data.metaTagsData.tags && data.metaTagsData.tags.length > 0),
+            hasGeoCheckData: !!(data && data.geoCheckData && data.geoCheckData.factors && data.geoCheckData.factors.length > 0),
             timestamp: new Date().toISOString()
         };
         

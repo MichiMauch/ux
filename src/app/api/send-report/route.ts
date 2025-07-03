@@ -445,7 +445,7 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
         }, url)
       ),
       // Footer
-      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 1 von 6")
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 1 von 7")
     ),
 
     // Page 2: Summary and Categories Overview
@@ -502,7 +502,7 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
       ),
       
       // Footer
-      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 2 von 6")
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 2 von 7")
     ),
 
     // Page 3: Detailed Categories
@@ -546,7 +546,7 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
       ),
       
       // Footer
-      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 3 von 6")
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 3 von 7")
     ),
 
     // Page 4: Desktop PageSpeed Data
@@ -615,7 +615,7 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
       ),
       
       // Footer
-      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 4 von 6")
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 4 von 7")
     ),
 
     // Page 5: Mobile PageSpeed Data
@@ -680,11 +680,72 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
               React.createElement(Text, { style: styles.speedMetricValue }, getMetricValue(value))
             )
           )
+        ),
+
+        // PageSpeed Recommendations
+        data.pageSpeedRecommendations && data.pageSpeedRecommendations.length > 0 && React.createElement(View, { style: { marginTop: 20 } },
+          React.createElement(Text, { style: styles.speedMetricsTitle }, "KI-Handlungsempfehlungen"),
+          ...data.pageSpeedRecommendations.slice(0, 3).map((rec, index) =>
+            React.createElement(View, { 
+              key: index, 
+              style: { 
+                backgroundColor: '#ffffff',
+                padding: 12,
+                marginBottom: 10,
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: '#e2e8f0',
+                borderLeftWidth: 4,
+                borderLeftColor: rec.impact === 'high' ? '#ef4444' : rec.impact === 'medium' ? '#f59e0b' : '#10b981'
+              }
+            },
+              React.createElement(View, { style: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 } },
+                React.createElement(Text, { style: { fontSize: 13, fontWeight: 'bold', color: '#1f2937', flex: 1 } }, rec.title),
+                React.createElement(View, { style: { flexDirection: 'row', gap: 4 } },
+                  React.createElement(Text, { 
+                    style: { 
+                      fontSize: 10, 
+                      paddingHorizontal: 6, 
+                      paddingVertical: 2, 
+                      borderRadius: 3,
+                      backgroundColor: rec.impact === 'high' ? '#fef2f2' : rec.impact === 'medium' ? '#fffbeb' : '#f0fdf4',
+                      color: rec.impact === 'high' ? '#dc2626' : rec.impact === 'medium' ? '#d97706' : '#059669'
+                    }
+                  }, rec.impact === 'high' ? 'Hoch' : rec.impact === 'medium' ? 'Mittel' : 'Niedrig'),
+                  React.createElement(Text, { 
+                    style: { 
+                      fontSize: 10, 
+                      paddingHorizontal: 6, 
+                      paddingVertical: 2, 
+                      borderRadius: 3,
+                      backgroundColor: '#f1f5f9',
+                      color: '#475569'
+                    }
+                  }, rec.difficulty === 'easy' ? 'Einfach' : rec.difficulty === 'medium' ? 'Mittel' : 'Schwer')
+                )
+              ),
+              React.createElement(Text, { style: { fontSize: 11, color: '#6b7280', marginBottom: 8, lineHeight: 1.4 } }, rec.description),
+              React.createElement(View, { style: { marginLeft: 8 } },
+                ...rec.actionSteps.slice(0, 2).map((step, stepIndex) =>
+                  React.createElement(Text, { 
+                    key: stepIndex, 
+                    style: { fontSize: 10, color: '#374151', marginBottom: 3, lineHeight: 1.3 }
+                  }, `• ${step}`)
+                ),
+                rec.actionSteps.length > 2 && React.createElement(Text, { 
+                  style: { fontSize: 10, color: '#6b7280', fontStyle: 'italic' }
+                }, `... ${rec.actionSteps.length - 2} weitere Schritte`)
+              )
+            )
+          ),
+          data.pageSpeedRecommendations.length > 3 && React.createElement(Text, { 
+            style: { fontSize: 11, color: '#6b7280', fontStyle: 'italic', textAlign: 'center', marginTop: 8 }
+          }, `... und ${data.pageSpeedRecommendations.length - 3} weitere Empfehlungen`)
         )
       ),
       
       // Footer
-      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 5 von 6")
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 5 von 7")
     ),
 
     // Page 6: Meta Tags Analysis
@@ -700,7 +761,7 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
         React.createElement(Text, { style: styles.sectionTitle }, "SEO-Übersicht"),
         React.createElement(View, { style: styles.metaSummary },
           React.createElement(View, { style: styles.metaSummaryItem },
-            React.createElement(Text, { style: [styles.metaSummaryValue, { color: getScoreColor(data.metaTagsData.score) }] }, `${data.metaTagsData.score}%`),
+            React.createElement(Text, { style: [styles.metaSummaryValue, { color: getScoreColor(data.metaTagsData.score / 10) }] }, `${data.metaTagsData.score}%`),
             React.createElement(Text, { style: styles.metaSummaryLabel }, "SEO Score")
           ),
           React.createElement(View, { style: styles.metaSummaryItem },
@@ -726,9 +787,9 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
                 }, tag.status === 'present' ? '✓' : '✗'),
                 React.createElement(Text, { style: styles.metaTagName }, tag.tag),
                 React.createElement(Text, { style: styles.metaTagContent }, 
-                  tag.content 
-                    ? (tag.content.length > 50 ? tag.content.substring(0, 50) + '...' : tag.content)
-                    : (tag.status === 'present' ? 'Vorhanden' : 'Fehlt')
+                  tag.content && tag.content.length > 50 
+                    ? tag.content.substring(0, 50) + '...' 
+                    : tag.content || (tag.status === 'present' ? 'Vorhanden' : 'Fehlt')
                 )
               )
             )
@@ -740,7 +801,161 @@ function createPDFDocument(url: string, timestamp: string, data: AnalysisData) {
       ),
       
       // Footer
-      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 6 von 6")
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 6 von 7")
+    ),
+
+    // Page 7: GEO Check Analysis
+    React.createElement(Page, { size: "A4", style: styles.page },
+      // Header
+      React.createElement(View, { style: styles.header },
+        React.createElement(Text, { style: styles.title }, "GEO-Check Analyse"),
+        React.createElement(Text, { style: styles.subtitle }, "Generative Engine Optimization")
+      ),
+      
+      // GEO Check Summary
+      data.geoCheckData && React.createElement(View, { style: styles.section },
+        React.createElement(Text, { style: styles.sectionTitle }, "GEO-Optimierung für AI-Systeme"),
+        React.createElement(View, { style: styles.metaSummary },
+          React.createElement(View, { style: styles.metaSummaryItem },
+            React.createElement(Text, { style: [styles.metaSummaryValue, { color: getScoreColor(data.geoCheckData.score) }] }, `${data.geoCheckData.score}/10`),
+            React.createElement(Text, { style: styles.metaSummaryLabel }, "GEO Score")
+          ),
+          React.createElement(View, { style: styles.metaSummaryItem },
+            React.createElement(Text, { style: [styles.metaSummaryValue, { color: '#10b981' }] }, `${data.geoCheckData.factors.filter(f => f.result).length}`),
+            React.createElement(Text, { style: styles.metaSummaryLabel }, "Faktoren erfüllt")
+          ),
+          React.createElement(View, { style: styles.metaSummaryItem },
+            React.createElement(Text, { style: [styles.metaSummaryValue, { color: '#ef4444' }] }, `${data.geoCheckData.factors.filter(f => !f.result).length}`),
+            React.createElement(Text, { style: styles.metaSummaryLabel }, "Verbesserungsbedarf")
+          )
+        )
+      ),
+
+      // GEO Factors List
+      data.geoCheckData && data.geoCheckData.factors && data.geoCheckData.factors.map((factor, factorIndex) => {
+        return React.createElement(View, { key: factorIndex, style: styles.metaGroup },
+          React.createElement(View, { style: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 } },
+            React.createElement(Text, { style: styles.metaGroupTitle }, factor.name),
+            React.createElement(View, { 
+              style: [styles.scoreBox, { backgroundColor: factor.result ? '#10b981' : '#ef4444' }]
+            },
+              React.createElement(Text, { 
+                style: [styles.scoreBoxText, { color: '#ffffff', fontSize: 12 }]
+              }, factor.result ? '✓' : '✗')
+            )
+          ),
+          React.createElement(Text, { 
+            style: { fontSize: 12, color: '#374151', marginBottom: 8, lineHeight: 1.5 }
+          }, factor.comment),
+          
+          // Factor details if available
+          factor.details && factor.details.length > 0 && React.createElement(View, { style: styles.metaTagsList },
+            React.createElement(Text, { 
+              style: { fontSize: 11, fontWeight: 'bold', color: '#6b7280', marginBottom: 4 }
+            }, "Details:"),
+            ...factor.details.slice(0, 3).map((detail, detailIndex) =>
+              React.createElement(Text, { 
+                key: detailIndex, 
+                style: { fontSize: 10, color: '#6b7280', marginBottom: 2, paddingLeft: 10 }
+              }, `• ${detail}`)
+            ),
+            factor.details.length > 3 && React.createElement(Text, { 
+              style: { fontSize: 10, color: '#6b7280', fontStyle: 'italic', marginTop: 3, paddingLeft: 10 }
+            }, `... und ${factor.details.length - 3} weitere Details`)
+          )
+        );
+      }),
+
+      // GEO Recommendations
+      data.geoRecommendations && data.geoRecommendations.length > 0 && React.createElement(View, { style: { marginTop: 20 } },
+        React.createElement(Text, { style: styles.metaGroupTitle }, "KI-Handlungsempfehlungen für GEO"),
+        ...data.geoRecommendations.slice(0, 3).map((rec, index) =>
+          React.createElement(View, { 
+            key: index, 
+            style: { 
+              backgroundColor: '#ffffff',
+              padding: 12,
+              marginBottom: 10,
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: '#e2e8f0',
+              borderLeftWidth: 4,
+              borderLeftColor: rec.impact === 'high' ? '#ef4444' : rec.impact === 'medium' ? '#f59e0b' : '#10b981'
+            }
+          },
+            React.createElement(View, { style: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 } },
+              React.createElement(Text, { style: { fontSize: 13, fontWeight: 'bold', color: '#1f2937', flex: 1 } }, rec.title),
+              React.createElement(View, { style: { flexDirection: 'row', gap: 4 } },
+                React.createElement(Text, { 
+                  style: { 
+                    fontSize: 10, 
+                    paddingHorizontal: 6, 
+                    paddingVertical: 2, 
+                    borderRadius: 3,
+                    backgroundColor: rec.impact === 'high' ? '#fef2f2' : rec.impact === 'medium' ? '#fffbeb' : '#f0fdf4',
+                    color: rec.impact === 'high' ? '#dc2626' : rec.impact === 'medium' ? '#d97706' : '#059669'
+                  }
+                }, rec.impact === 'high' ? 'Hoch' : rec.impact === 'medium' ? 'Mittel' : 'Niedrig'),
+                React.createElement(Text, { 
+                  style: { 
+                    fontSize: 10, 
+                    paddingHorizontal: 6, 
+                    paddingVertical: 2, 
+                    borderRadius: 3,
+                    backgroundColor: '#f1f5f9',
+                    color: '#475569'
+                  }
+                }, rec.difficulty === 'easy' ? 'Einfach' : rec.difficulty === 'medium' ? 'Mittel' : 'Schwer')
+              )
+            ),
+            React.createElement(Text, { style: { fontSize: 11, color: '#6b7280', marginBottom: 8, lineHeight: 1.4 } }, rec.description),
+            React.createElement(View, { style: { marginLeft: 8 } },
+              ...rec.actionSteps.slice(0, 2).map((step, stepIndex) =>
+                React.createElement(Text, { 
+                  key: stepIndex, 
+                  style: { fontSize: 10, color: '#374151', marginBottom: 3, lineHeight: 1.3 }
+                }, `• ${step}`)
+              ),
+              rec.actionSteps.length > 2 && React.createElement(Text, { 
+                style: { fontSize: 10, color: '#6b7280', fontStyle: 'italic' }
+              }, `... ${rec.actionSteps.length - 2} weitere Schritte`)
+            )
+          )
+        ),
+        data.geoRecommendations.length > 3 && React.createElement(Text, { 
+          style: { fontSize: 11, color: '#6b7280', fontStyle: 'italic', textAlign: 'center', marginTop: 8 }
+        }, `... und ${data.geoRecommendations.length - 3} weitere Empfehlungen`)
+      ),
+
+      // Info about GEO
+      React.createElement(View, { 
+        style: { 
+          backgroundColor: '#f0f9ff', 
+          padding: 15, 
+          borderRadius: 8, 
+          marginTop: 20,
+          borderLeftWidth: 4,
+          borderLeftColor: '#3b82f6'
+        }
+      },
+        React.createElement(Text, { 
+          style: { fontSize: 14, fontWeight: 'bold', color: '#1f2937', marginBottom: 8 }
+        }, "Was ist GEO (Generative Engine Optimization)?"),
+        React.createElement(Text, { 
+          style: { fontSize: 12, color: '#374151', lineHeight: 1.6 }
+        }, "GEO optimiert Websites für AI-Systeme wie ChatGPT, Google Gemini und Perplexity. Strukturierte Daten, semantisches HTML, klare Autorenangaben und gut strukturierte Inhalte helfen AI-Systemen, Ihre Website besser zu verstehen, zu zitieren und in Antworten einzubinden.")
+      ),
+
+      // No GEO data message
+      !data.geoCheckData && React.createElement(View, { style: styles.section },
+        React.createElement(Text, { style: styles.sectionTitle }, "GEO-Check nicht verfügbar"),
+        React.createElement(Text, { 
+          style: { fontSize: 14, color: '#6b7280', textAlign: 'center', marginTop: 40 }
+        }, "Für diese Analyse wurden keine GEO-Check Daten erfasst. Führen Sie einen GEO-Check durch, um diese Seite im Report zu sehen.")
+      ),
+      
+      // Footer
+      React.createElement(Text, { style: styles.footer }, "UX-Analyzer Report • Seite 7 von 7")
     )
   );
 }

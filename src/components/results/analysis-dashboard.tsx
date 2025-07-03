@@ -8,6 +8,7 @@ import { ScoreCard } from "./score-card";
 import { AdditionalChecks } from "./additional-checks";
 import PageSpeedCard from "./pagespeed-card";
 import MetaTagsCard from "./meta-tags-card";
+import GeoCheckCard from "./geo-check-card";
 import GetReportForm from "../reports/GetReportForm";
 import useSWR from "swr";
 import { MetaTag } from "@/types/analysis";
@@ -23,6 +24,7 @@ import {
   Zap,
   Eye,
   Tags,
+  Bot,
   Loader2,
 } from "lucide-react";
 import { AnalysisResult } from "@/types/analysis";
@@ -40,7 +42,7 @@ export function AnalysisDashboard({
     "desktop"
   );
   const [activeTab, setActiveTab] = useState<
-    "ux" | "speed" | "meta" | "report"
+    "ux" | "speed" | "meta" | "geo" | "report"
   >("ux");
   const [showAdditionalChecks, setShowAdditionalChecks] = useState(false);
 
@@ -49,7 +51,8 @@ export function AnalysisDashboard({
   const [savedData, setSavedData] = useState({
     pageSpeedDesktop: false,
     pageSpeedMobile: false,
-    metaTags: false
+    metaTags: false,
+    geoCheck: false
   });
 
   const { data: pageSpeedDesktop, isLoading: speedLoadingDesktop } = useSWR(
@@ -202,6 +205,47 @@ export function AnalysisDashboard({
       console.error("Fehler beim Aktualisieren der Meta-Tags-Daten:", error);
     }
   }, [savedData.metaTags, metaLoading, metaTagsData, analysis.analysisId]);
+
+  // Save GEO Check data incrementally
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const saveGeoCheckData = useCallback(async (geoData: any) => {
+    if (savedData.geoCheck || !geoData || !analysis.analysisId) {
+      return;
+    }
+
+    try {
+      console.log('saveGeoCheckData: Starting to save GEO data', geoData);
+
+      // Transform GEO data for database storage
+      const transformedData = {
+        score: geoData.score,
+        factors: geoData.factors,
+        timestamp: geoData.timestamp
+      };
+
+      console.log('saveGeoCheckData: Transformed data:', transformedData);
+
+      const response = await fetch("/api/update-analysis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          analysisId: analysis.analysisId,
+          geoCheckData: transformedData
+        }),
+      });
+
+      if (response.ok) {
+        setSavedData(prev => ({ ...prev, geoCheck: true }));
+        console.log("GEO-Check-Daten aktualisiert für Analysis ID:", analysis.analysisId);
+      } else {
+        console.error("GEO check update failed:", await response.text());
+      }
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren der GEO-Check-Daten:", error);
+    }
+  }, [savedData.geoCheck, analysis.analysisId]);
 
   // Trigger incremental saves when data is available
   useEffect(() => {
@@ -367,6 +411,22 @@ export function AnalysisDashboard({
             </div>
           </button>
           <button
+            onClick={() => setActiveTab("geo")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "geo"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Bot className="h-4 w-4" />
+              <span>GEO Check</span>
+              <Badge variant="outline" className="bg-blue-50 text-blue-600">
+                NEW
+              </Badge>
+            </div>
+          </button>
+          <button
             onClick={() => setActiveTab("report")}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === "report"
@@ -516,6 +576,18 @@ export function AnalysisDashboard({
             <>
               <div>
                 <MetaTagsCard url={analysis.url} />
+              </div>
+            </>
+          )}
+
+          {activeTab === "geo" && (
+            <>
+              <div>
+                <GeoCheckCard 
+                  url={analysis.url} 
+                  analysisId={analysis.analysisId}
+                  onDataUpdate={saveGeoCheckData}
+                />
               </div>
             </>
           )}

@@ -23,7 +23,7 @@ export function ScoreCard({ category }: ScoreCardProps) {
   const getScoreColor = (score: number) => {
     if (score >= 8) return "success";
     if (score >= 6) return "warning";
-    return "error";
+    return "destructive"; // replaces "error"
   };
 
   const getScoreIcon = (score: number) => {

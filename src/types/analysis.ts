@@ -101,10 +101,47 @@ export interface PageSpeedData {
   recommendations?: string[];
 }
 
+export interface GeoFactor {
+  name: string;
+  result: boolean;
+  weight: number;
+  comment: string;
+  details?: string[];
+}
+
+export interface GeoCheckData {
+  score: number;
+  factors: GeoFactor[];
+  timestamp: string;
+}
+
+export interface PageSpeedRecommendation {
+  category: string;
+  impact: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  actionSteps: string[];
+  estimatedSavings?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
+export interface GeoRecommendation {
+  category: string;
+  impact: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  actionSteps: string[];
+  estimatedSavings?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
 export interface AnalysisData {
   uxAnalysis?: AnalysisResult;
   pageSpeedData?: PageSpeedData;
   metaTagsData?: MetaTagsData;
+  geoCheckData?: GeoCheckData;
+  pageSpeedRecommendations?: PageSpeedRecommendation[];
+  geoRecommendations?: GeoRecommendation[];
 }
 
 export interface ScreenshotResponse {

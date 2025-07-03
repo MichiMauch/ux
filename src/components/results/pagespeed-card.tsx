@@ -18,7 +18,7 @@ import {
   ArrowRight,
   AlertCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface PageSpeedMetric {
   id: string;
@@ -110,9 +110,41 @@ const getDifficultyColor = (difficulty: string) => {
 };
 
 export default function PageSpeedCard({ url, analysisId }: PageSpeedCardProps) {
+  // Create persistent state using localStorage
+  const getStorageKey = useCallback((key: string) => `pagespeed-${url}-${key}`, [url]);
+  
   const [email, setEmail] = useState("");
   const [generateRecommendations, setGenerateRecommendations] = useState(false);
   const [activeTab, setActiveTab] = useState("desktop");
+
+  // Initialize state from localStorage on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedEmail = localStorage.getItem(getStorageKey('email'));
+      const savedGenerateRecommendations = localStorage.getItem(getStorageKey('generateRecommendations'));
+      
+      if (savedEmail) {
+        setEmail(savedEmail);
+      }
+      if (savedGenerateRecommendations === 'true') {
+        setGenerateRecommendations(true);
+      }
+    }
+  }, [url, getStorageKey]);
+
+  // Update localStorage when email changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && email) {
+      localStorage.setItem(getStorageKey('email'), email);
+    }
+  }, [email, url, getStorageKey]);
+
+  // Update localStorage when generateRecommendations changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(getStorageKey('generateRecommendations'), generateRecommendations.toString());
+    }
+  }, [generateRecommendations, url, getStorageKey]);
 
   const {
     data: pagespeedData,
@@ -168,10 +200,10 @@ export default function PageSpeedCard({ url, analysisId }: PageSpeedCardProps) {
       return;
     }
 
-    // Save email to database if analysisId is available
+    // Save email to database with source tracking if analysisId is available
     if (analysisId) {
       try {
-        const response = await fetch("/api/update-lead-email", {
+        const response = await fetch("/api/track-email-source", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -179,12 +211,13 @@ export default function PageSpeedCard({ url, analysisId }: PageSpeedCardProps) {
           body: JSON.stringify({
             analysisId,
             email,
+            source: "pagespeed",
           }),
         });
 
         const result = await response.json();
         if (result.success) {
-          console.log("E-Mail für PageSpeed Empfehlungen gespeichert:", email);
+          console.log("E-Mail für PageSpeed Empfehlungen gespeichert:", email, "| Quelle: pagespeed");
         } else {
           console.error("Fehler beim Speichern der E-Mail:", result.error);
         }

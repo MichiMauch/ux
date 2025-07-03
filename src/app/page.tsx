@@ -121,7 +121,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
       <Header />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -137,7 +137,7 @@ export default function Home() {
                   <Sparkles className="h-4 w-4 mr-2" />
                   Powered by OpenAI GPT-4 Vision
                 </Badge>
-                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary-600 via-primary-500 to-primary-700 bg-clip-text text-transparent">
                   Professional website check with Paul AI
                 </h1>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
@@ -155,8 +155,8 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
               <Card className="text-center p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="space-y-4">
-                  <div className="mx-auto w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Zap className="h-6 w-6 text-blue-600" />
+                  <div className="mx-auto w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <Zap className="h-6 w-6 text-primary-600" />
                   </div>
                   <h3 className="text-xl font-semibold">Schnelle Analyse</h3>
                   <p className="text-gray-600">
@@ -167,8 +167,8 @@ export default function Home() {
 
               <Card className="text-center p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="space-y-4">
-                  <div className="mx-auto w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Target className="h-6 w-6 text-green-600" />
+                  <div className="mx-auto w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                    <Target className="h-6 w-6 text-success-600" />
                   </div>
                   <h3 className="text-xl font-semibold">
                     Konkrete Empfehlungen
@@ -181,8 +181,8 @@ export default function Home() {
 
               <Card className="text-center p-6 hover:shadow-lg transition-shadow">
                 <CardContent className="space-y-4">
-                  <div className="mx-auto w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-purple-600" />
+                  <div className="mx-auto w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-primary-600" />
                   </div>
                   <h3 className="text-xl font-semibold">Professionell</h3>
                   <p className="text-gray-600">
@@ -198,20 +198,20 @@ export default function Home() {
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardContent className="p-12 text-center space-y-6">
-                <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                <div className="mx-auto w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 text-primary-600 animate-spin" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-2xl font-semibold">Analysiere Website</h2>
                   <p className="text-gray-600">
                     Erstelle Screenshots und führe KI-Analyse durch...
                   </p>
-                  <p className="text-sm text-blue-600 font-medium">
+                  <p className="text-sm text-primary-600 font-medium">
                     {appState.url}
                   </p>
                 </div>
                 <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-                  <div className="bg-blue-600 h-full rounded-full animate-pulse w-2/3"></div>
+                  <div className="bg-primary-500 h-full rounded-full animate-pulse w-2/3"></div>
                 </div>
                 <p className="text-xs text-gray-500">
                   Dies kann 30-60 Sekunden dauern
