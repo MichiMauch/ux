@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
+    const strategy = searchParams.get('strategy') || 'desktop'; // default to desktop
 
     if (!url) {
       return NextResponse.json(
@@ -83,13 +84,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log(`Starting PageSpeed analysis for: ${url}`);
+    console.log(`Starting PageSpeed analysis for: ${url} (${strategy})`);
 
     // Call Google PageSpeed Insights API
     const pagespeedUrl = new URL('https://www.googleapis.com/pagespeedonline/v5/runPagespeed');
     pagespeedUrl.searchParams.set('url', url);
     pagespeedUrl.searchParams.set('key', apiKey);
-    pagespeedUrl.searchParams.set('strategy', 'desktop'); // or 'mobile'
+    pagespeedUrl.searchParams.set('strategy', strategy);
     // Add all categories as separate parameters
     pagespeedUrl.searchParams.append('category', 'performance');
     pagespeedUrl.searchParams.append('category', 'accessibility');

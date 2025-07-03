@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 export function Header() {
   return (
@@ -11,10 +12,16 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <TrendingUp className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">UX Checker</span>
+            <Image
+              src="/paul-check.gif"
+              alt="Paul Check"
+              width={32}
+              height={32}
+              className="rounded"
+            />
+            <span className="text-xl font-bold text-gray-900">
+              Paul AI - Your friendly UX Bot
+            </span>
           </Link>
 
           {/* Navigation */}

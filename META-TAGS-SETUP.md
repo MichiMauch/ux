@@ -11,13 +11,15 @@ Die Meta Tags-Analyse prüft automatisch, ob wichtige SEO und Social Media Tags 
 ### ✅ Geprüfte Tag-Kategorien
 
 **Meta Tags (SEO):**
+
 - `title` - Seitentitel für Suchmaschinen
-- `description` - Meta-Beschreibung für Suchergebnisse  
+- `description` - Meta-Beschreibung für Suchergebnisse
 - `canonical` - Canonical URL gegen Duplicate Content
 - `robots` - Crawler-Anweisungen für Suchmaschinen
 - `viewport` - Mobile-Optimierung
 
 **Open Graph Tags (Social Media):**
+
 - `og:title` - Titel beim Teilen auf sozialen Medien
 - `og:description` - Beschreibung für Social Media Posts
 - `og:url` - Kanonische URL für Social Sharing
@@ -25,6 +27,7 @@ Die Meta Tags-Analyse prüft automatisch, ob wichtige SEO und Social Media Tags 
 - `og:image` - Vorschaubild für Social Media
 
 **Twitter Cards:**
+
 - `twitter:card` - Twitter Card-Type (summary, large_image)
 - `twitter:title` - Titel für Twitter-Cards
 - `twitter:description` - Beschreibung für Twitter
@@ -43,14 +46,17 @@ Die Meta Tags-Analyse prüft automatisch, ob wichtige SEO und Social Media Tags 
 Analysiert die Meta Tags einer Website durch HTML-Parsing.
 
 **Parameter:**
+
 - `url` (required): Die zu analysierende URL
 
 **Beispiel:**
+
 ```
 GET /api/meta-tags?url=https://example.com
 ```
 
 **Response:**
+
 ```json
 {
   "url": "https://example.com",
@@ -69,7 +75,7 @@ GET /api/meta-tags?url=https://example.com
       "content": "Beispiel Website - Startseite"
     },
     {
-      "group": "Meta Tags", 
+      "group": "Meta Tags",
       "tag": "description",
       "present": false,
       "content": null,
@@ -86,13 +92,14 @@ GET /api/meta-tags?url=https://example.com
 Die `MetaTagsCard` wird automatisch im "Meta Tags" Tab der Analyse-Dashboard angezeigt:
 
 ```tsx
-import MetaTagsCard from '@/components/results/meta-tags-card';
+import MetaTagsCard from "@/components/results/meta-tags-card";
 
 // Automatisch integriert in AnalysisDashboard
-<MetaTagsCard url="https://example.com" />
+<MetaTagsCard url="https://example.com" />;
 ```
 
 **Features:**
+
 - ✅ Tab-Navigation: Meta Tags, Open Graph, Twitter, Empfehlungen
 - ✅ Status-Icons für jeden Tag
 - ✅ Vollständiger Content-Preview mit Truncation
@@ -109,7 +116,7 @@ import MetaTagsCard from '@/components/results/meta-tags-card';
 │  [Meta Tags] [Open Graph] [Twitter] [Empfehlungen (4)]     │
 ├─────────────────────────────────────────────────────────────┤
 │  Status │ Tag              │ Inhalt                         │
-│  ✅     │ title            │ Beispiel Website - Startseite   │  
+│  ✅     │ title            │ Beispiel Website - Startseite   │
 │  ❌     │ description      │ Nicht vorhanden               │
 │  ✅     │ canonical        │ https://example.com/           │
 └─────────────────────────────────────────────────────────────┘
@@ -118,7 +125,7 @@ import MetaTagsCard from '@/components/results/meta-tags-card';
 ### Tab-Navigation
 
 1. **Meta Tags**: SEO-relevante Meta Tags
-2. **Open Graph**: Social Media Sharing Tags  
+2. **Open Graph**: Social Media Sharing Tags
 3. **Twitter**: Twitter-spezifische Cards
 4. **Empfehlungen**: Alle fehlenden Tags mit Verbesserungsvorschlägen
 
@@ -127,12 +134,12 @@ import MetaTagsCard from '@/components/results/meta-tags-card';
 ### HTML-Parsing mit Cheerio
 
 ```typescript
-import * as cheerio from 'cheerio';
+import * as cheerio from "cheerio";
 
 const $ = cheerio.load(html);
-const title = $('title').text();
-const description = $('meta[name="description"]').attr('content');
-const ogImage = $('meta[property="og:image"]').attr('content');
+const title = $("title").text();
+const description = $('meta[name="description"]').attr("content");
+const ogImage = $('meta[property="og:image"]').attr("content");
 ```
 
 ### Tag-Konfiguration
@@ -141,8 +148,8 @@ Jeder Tag wird mit einem konfigurierbaren Objekt definiert:
 
 ```typescript
 interface TagConfig {
-  selector: string;      // CSS-Selektor für das Element
-  attribute?: string;    // HTML-Attribut (falls nicht textContent)
+  selector: string; // CSS-Selektor für das Element
+  attribute?: string; // HTML-Attribut (falls nicht textContent)
   recommendation: string; // Empfehlung bei fehlendem Tag
 }
 ```
@@ -197,16 +204,19 @@ Jeder fehlende Tag wird mit einer spezifischen Empfehlung angezeigt:
 ## Performance-Optimierungen
 
 ### 1. Request-Optimierung
+
 - 10 Sekunden Timeout für langsame Websites
 - User-Agent Header für bessere Kompatibilität
 - Accept-Header für HTML-Content
 
 ### 2. Frontend-Optimierung
+
 - Lazy Loading der Tab-Inhalte
 - Content-Truncation für lange Meta-Inhalte
 - Responsive Tabellen für mobile Geräte
 
 ### 3. Caching-Strategie
+
 - Client-seitiges SWR Caching
 - Keine automatischen Refreshs
 - Cache-Invalidation bei URL-Wechsel
@@ -214,6 +224,7 @@ Jeder fehlende Tag wird mit einer spezifischen Empfehlung angezeigt:
 ## Häufige Meta Tags-Probleme
 
 ### 1. Fehlende Title Tags
+
 ```html
 <!-- Schlecht -->
 <title></title>
@@ -223,21 +234,26 @@ Jeder fehlende Tag wird mit einer spezifischen Empfehlung angezeigt:
 ```
 
 ### 2. Fehlende Meta Description
+
 ```html
 <!-- Fehlend -->
 <!-- Keine meta description -->
 
 <!-- Gut -->
-<meta name="description" content="Aussagekräftige Beschreibung für Suchmaschinen (150-160 Zeichen)">
+<meta
+  name="description"
+  content="Aussagekräftige Beschreibung für Suchmaschinen (150-160 Zeichen)"
+/>
 ```
 
 ### 3. Fehlende Open Graph Tags
+
 ```html
 <!-- Minimal erforderlich -->
-<meta property="og:title" content="Seitentitel">
-<meta property="og:description" content="Beschreibung">
-<meta property="og:image" content="https://example.com/image.jpg">
-<meta property="og:url" content="https://example.com/page">
+<meta property="og:title" content="Seitentitel" />
+<meta property="og:description" content="Beschreibung" />
+<meta property="og:image" content="https://example.com/image.jpg" />
+<meta property="og:url" content="https://example.com/page" />
 ```
 
 ## Troubleshooting
@@ -248,7 +264,7 @@ Jeder fehlende Tag wird mit einer spezifischen Empfehlung angezeigt:
    - URL nicht erreichbar oder blockiert Bots
    - Timeout nach 10 Sekunden
 
-2. **"Invalid URL format"**  
+2. **"Invalid URL format"**
    - URL-Format prüfen (http/https)
    - Vollständige URL angeben
 
@@ -259,6 +275,7 @@ Jeder fehlende Tag wird mit einer spezifischen Empfehlung angezeigt:
 ### Debug-Informationen
 
 Server-Logs zeigen Details:
+
 ```bash
 npm run dev
 # Check Terminal für Meta Tags API Logs

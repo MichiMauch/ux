@@ -1,10 +1,24 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import useSWR from 'swr';
-import { Clock, Zap, Eye, Lightbulb, ArrowRight, AlertCircle } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import useSWR from "swr";
+import {
+  Clock,
+  Zap,
+  Eye,
+  Lightbulb,
+  ArrowRight,
+  AlertCircle,
+} from "lucide-react";
+import { useState } from "react";
 
 interface PageSpeedMetric {
   id: string;
@@ -41,12 +55,12 @@ interface PageSpeedResult {
 
 interface SimplifiedRecommendation {
   category: string;
-  impact: 'high' | 'medium' | 'low';
+  impact: "high" | "medium" | "low";
   title: string;
   description: string;
   actionSteps: string[];
   estimatedSavings?: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 }
 
 interface RecommendationsResult {
@@ -58,37 +72,54 @@ interface RecommendationsResult {
 
 interface PageSpeedCardProps {
   url: string;
+  analysisId?: number;
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const getScoreColor = (score: number) => {
-  if (score >= 90) return 'text-green-600';
-  if (score >= 50) return 'text-yellow-600';
-  return 'text-red-600';
+  if (score >= 90) return "text-green-600";
+  if (score >= 50) return "text-yellow-600";
+  return "text-red-600";
 };
 
 const getImpactColor = (impact: string) => {
   switch (impact) {
-    case 'high': return 'bg-red-100 text-red-800';
-    case 'medium': return 'bg-yellow-100 text-yellow-800';
-    case 'low': return 'bg-green-100 text-green-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case "high":
+      return "bg-red-100 text-red-800";
+    case "medium":
+      return "bg-yellow-100 text-yellow-800";
+    case "low":
+      return "bg-green-100 text-green-800";
+    default:
+      return "bg-gray-100 text-gray-800";
   }
 };
 
 const getDifficultyColor = (difficulty: string) => {
   switch (difficulty) {
-    case 'easy': return 'bg-green-100 text-green-800';
-    case 'medium': return 'bg-yellow-100 text-yellow-800';
-    case 'hard': return 'bg-red-100 text-red-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case "easy":
+      return "bg-green-100 text-green-800";
+    case "medium":
+      return "bg-yellow-100 text-yellow-800";
+    case "hard":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
   }
 };
 
-export default function PageSpeedCard({ url }: PageSpeedCardProps) {
-  const { data: pagespeedData, error: pagespeedError, isLoading: pagespeedLoading } = useSWR<PageSpeedResult>(
-    `/api/pagespeed?url=${encodeURIComponent(url)}`,
+export default function PageSpeedCard({ url, analysisId }: PageSpeedCardProps) {
+  const [email, setEmail] = useState("");
+  const [generateRecommendations, setGenerateRecommendations] = useState(false);
+  const [activeTab, setActiveTab] = useState("desktop");
+
+  const {
+    data: pagespeedData,
+    error: pagespeedError,
+    isLoading: pagespeedLoading,
+  } = useSWR<PageSpeedResult>(
+    `/api/pagespeed?url=${encodeURIComponent(url)}&strategy=${activeTab}`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -97,17 +128,21 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
   );
 
   // Create a stable cache key for recommendations
-  const recommendationsCacheKey = pagespeedData && pagespeedData.opportunities.length > 0
-    ? `recommendations:${url}:${pagespeedData.opportunities.map(o => o.id).sort().join(',')}`
-    : null;
+  const recommendationsCacheKey =
+    pagespeedData && pagespeedData.opportunities.length > 0
+      ? `recommendations:${url}:${pagespeedData.opportunities
+          .map((o) => o.id)
+          .sort()
+          .join(",")}`
+      : null;
 
   // Custom fetcher for recommendations with POST request
   const recommendationsFetcher = async () => {
-    if (!pagespeedData) throw new Error('No PageSpeed data available');
-    
-    const response = await fetch('/api/pagespeed-recommendations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    if (!pagespeedData) throw new Error("No PageSpeed data available");
+
+    const response = await fetch("/api/pagespeed-recommendations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         opportunities: pagespeedData.opportunities,
         url: pagespeedData.url,
@@ -115,25 +150,58 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
           performance: pagespeedData.performance,
           accessibility: pagespeedData.accessibility,
           bestPractices: pagespeedData.bestPractices,
-          seo: pagespeedData.seo
-        }
-      })
+          seo: pagespeedData.seo,
+        },
+      }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     return response.json();
   };
 
-  // Use SWR for persistent caching of recommendations
-  const { 
-    data: recommendationsData, 
-    error: recommendationsError, 
-    isLoading: recommendationsLoading 
+  const handleGenerateRecommendations = async () => {
+    if (!email) {
+      alert("Bitte geben Sie eine gültige E-Mail-Adresse ein.");
+      return;
+    }
+
+    // Save email to database if analysisId is available
+    if (analysisId) {
+      try {
+        const response = await fetch("/api/update-lead-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            analysisId,
+            email,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log("E-Mail für PageSpeed Empfehlungen gespeichert:", email);
+        } else {
+          console.error("Fehler beim Speichern der E-Mail:", result.error);
+        }
+      } catch (error) {
+        console.error("Fehler beim Speichern der E-Mail:", error);
+      }
+    }
+
+    setGenerateRecommendations(true);
+  };
+
+  const {
+    data: recommendationsData,
+    error: recommendationsError,
+    isLoading: recommendationsLoading,
   } = useSWR<RecommendationsResult>(
-    recommendationsCacheKey,
+    generateRecommendations && recommendationsCacheKey,
     recommendationsFetcher,
     {
       revalidateOnFocus: false,
@@ -158,7 +226,7 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
         </CardHeader>
         <CardContent>
           <div className="text-red-600">
-            {pagespeedError.message || 'Unbekannter Fehler'}
+            {pagespeedError.message || "Unbekannter Fehler"}
           </div>
         </CardContent>
       </Card>
@@ -172,11 +240,33 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
           <Zap className="h-5 w-5" />
           PageSpeed Analyse
         </CardTitle>
-        <CardDescription>
-          Google PageSpeed Insights für {url}
-        </CardDescription>
+        <CardDescription>Google PageSpeed Insights für {url}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Tab Navigation */}
+        <div className="flex gap-4 mb-4">
+          <button
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "desktop"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setActiveTab("desktop")}
+          >
+            Desktop
+          </button>
+          <button
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "mobile"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+            onClick={() => setActiveTab("mobile")}
+          >
+            Mobile
+          </button>
+        </div>
+
         {pagespeedLoading ? (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-4 w-4 animate-spin" />
@@ -185,36 +275,123 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
         ) : pagespeedData ? (
           <>
             {/* Scores Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${getScoreColor(pagespeedData.performance)}`}>
-                  {pagespeedData.performance}
+            {activeTab === "desktop" && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(
+                      pagespeedData.performance
+                    )}`}
+                  >
+                    {pagespeedData.performance}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Performance
+                  </div>
+                  <Progress value={pagespeedData.performance} className="mt-1" />
                 </div>
-                <div className="text-sm text-muted-foreground">Performance</div>
-                <Progress value={pagespeedData.performance} className="mt-1" />
-              </div>
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${getScoreColor(pagespeedData.accessibility)}`}>
-                  {pagespeedData.accessibility}
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(
+                      pagespeedData.accessibility
+                    )}`}
+                  >
+                    {pagespeedData.accessibility}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Zugänglichkeit
+                  </div>
+                  <Progress
+                    value={pagespeedData.accessibility}
+                    className="mt-1"
+                  />
                 </div>
-                <div className="text-sm text-muted-foreground">Zugänglichkeit</div>
-                <Progress value={pagespeedData.accessibility} className="mt-1" />
-              </div>
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${getScoreColor(pagespeedData.bestPractices)}`}>
-                  {pagespeedData.bestPractices}
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(
+                      pagespeedData.bestPractices
+                    )}`}
+                  >
+                    {pagespeedData.bestPractices}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Best Practices
+                  </div>
+                  <Progress
+                    value={pagespeedData.bestPractices}
+                    className="mt-1"
+                  />
                 </div>
-                <div className="text-sm text-muted-foreground">Best Practices</div>
-                <Progress value={pagespeedData.bestPractices} className="mt-1" />
-              </div>
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${getScoreColor(pagespeedData.seo)}`}>
-                  {pagespeedData.seo}
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(pagespeedData.seo)}`}
+                  >
+                    {pagespeedData.seo}
+                  </div>
+                  <div className="text-sm text-muted-foreground">SEO</div>
+                  <Progress value={pagespeedData.seo} className="mt-1" />
                 </div>
-                <div className="text-sm text-muted-foreground">SEO</div>
-                <Progress value={pagespeedData.seo} className="mt-1" />
               </div>
-            </div>
+            )}
+
+            {activeTab === "mobile" && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(
+                      pagespeedData.performance
+                    )}`}
+                  >
+                    {pagespeedData.performance}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Performance
+                  </div>
+                  <Progress value={pagespeedData.performance} className="mt-1" />
+                </div>
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(
+                      pagespeedData.accessibility
+                    )}`}
+                  >
+                    {pagespeedData.accessibility}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Zugänglichkeit
+                  </div>
+                  <Progress
+                    value={pagespeedData.accessibility}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(
+                      pagespeedData.bestPractices
+                    )}`}
+                  >
+                    {pagespeedData.bestPractices}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Best Practices
+                  </div>
+                  <Progress
+                    value={pagespeedData.bestPractices}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="text-center">
+                  <div
+                    className={`text-2xl font-bold ${getScoreColor(pagespeedData.seo)}`}
+                  >
+                    {pagespeedData.seo}
+                  </div>
+                  <div className="text-sm text-muted-foreground">SEO</div>
+                  <Progress value={pagespeedData.seo} className="mt-1" />
+                </div>
+              </div>
+            )}
 
             {/* Core Web Vitals */}
             <div>
@@ -224,19 +401,25 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="font-medium">{pagespeedData.metrics.largestContentfulPaint.title}</div>
+                  <div className="font-medium">
+                    {pagespeedData.metrics.largestContentfulPaint.title}
+                  </div>
                   <div className="text-lg font-bold text-blue-600">
                     {pagespeedData.metrics.largestContentfulPaint.displayValue}
                   </div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="font-medium">{pagespeedData.metrics.firstInputDelay.title}</div>
+                  <div className="font-medium">
+                    {pagespeedData.metrics.firstInputDelay.title}
+                  </div>
                   <div className="text-lg font-bold text-blue-600">
                     {pagespeedData.metrics.firstInputDelay.displayValue}
                   </div>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="font-medium">{pagespeedData.metrics.cumulativeLayoutShift.title}</div>
+                  <div className="font-medium">
+                    {pagespeedData.metrics.cumulativeLayoutShift.title}
+                  </div>
                   <div className="text-lg font-bold text-blue-600">
                     {pagespeedData.metrics.cumulativeLayoutShift.displayValue}
                   </div>
@@ -244,14 +427,31 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
               </div>
             </div>
 
+            {/* Email Input and Button for Recommendations */}
+            <div className="space-y-4">
+              <input
+                type="email"
+                placeholder="E-Mail-Adresse eingeben"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border rounded-lg p-2 w-full"
+              />
+              <button
+                onClick={handleGenerateRecommendations}
+                className="bg-blue-500 text-white rounded-lg px-4 py-2"
+              >
+                Handlungsempfehlungen generieren
+              </button>
+            </div>
+
             {/* AI-Generated Recommendations */}
-            {pagespeedData.opportunities.length > 0 && (
+            {generateRecommendations && pagespeedData?.opportunities.length > 0 && (
               <div>
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Lightbulb className="h-4 w-4" />
                   Handlungsempfehlungen
                 </h4>
-                
+
                 {recommendationsLoading ? (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Clock className="h-4 w-4 animate-spin" />
@@ -261,36 +461,61 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
                   <div className="text-red-600 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
                     Handlungsempfehlungen konnten nicht geladen werden.
-                    <div className="text-sm text-gray-500 mt-1">Fehler: {recommendationsError.message || recommendationsError}</div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      Fehler: {recommendationsError.message || recommendationsError}
+                    </div>
                   </div>
                 ) : recommendationsData?.recommendations ? (
                   <div className="space-y-4">
                     {recommendationsData.recommendations.map((rec, index) => (
-                      <div key={index} className="border rounded-lg p-4 bg-white">
+                      <div
+                        key={index}
+                        className="border rounded-lg p-4 bg-white"
+                      >
                         <div className="flex items-start justify-between mb-2">
                           <h5 className="font-medium">{rec.title}</h5>
                           <div className="flex gap-2">
-                            <Badge variant="outline" className={getImpactColor(rec.impact)}>
-                              {rec.impact === 'high' ? 'Hoch' : rec.impact === 'medium' ? 'Mittel' : 'Niedrig'} Impact
+                            <Badge
+                              variant="outline"
+                              className={getImpactColor(rec.impact)}
+                            >
+                              {rec.impact === "high"
+                                ? "Hoch"
+                                : rec.impact === "medium"
+                                  ? "Mittel"
+                                  : "Niedrig"}{" "}
+                              Impact
                             </Badge>
-                            <Badge variant="outline" className={getDifficultyColor(rec.difficulty)}>
-                              {rec.difficulty === 'easy' ? 'Einfach' : rec.difficulty === 'medium' ? 'Mittel' : 'Schwer'}
+                            <Badge
+                              variant="outline"
+                              className={getDifficultyColor(rec.difficulty)}
+                            >
+                              {rec.difficulty === "easy"
+                                ? "Einfach"
+                                : rec.difficulty === "medium"
+                                  ? "Mittel"
+                                  : "Schwer"}
                             </Badge>
                           </div>
                         </div>
-                        
+
                         <p className="text-gray-600 mb-3">{rec.description}</p>
-                        
+
                         {rec.estimatedSavings && (
                           <div className="text-sm text-green-600 mb-2 font-medium">
                             💡 {rec.estimatedSavings}
                           </div>
                         )}
-                        
+
                         <div className="space-y-1">
-                          <div className="text-sm font-medium text-gray-700">Handlungsschritte:</div>
+                          <div className="text-sm font-medium text-gray-700">
+                            Handlungsschritte:
+                          </div>
                           {rec.actionSteps.map((step, stepIndex) => (
-                            <div key={stepIndex} className="flex items-start gap-2 text-sm">
+                            <div
+                              key={stepIndex}
+                              className="flex items-start gap-2 text-sm"
+                            >
                               <ArrowRight className="h-3 w-3 mt-1 text-blue-500 flex-shrink-0" />
                               <span>{step}</span>
                             </div>

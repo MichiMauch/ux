@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -9,9 +9,13 @@ export function Footer() {
           {/* Logo & Description */}
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-                <TrendingUp className="h-5 w-5 text-white" />
-              </div>
+              <Image
+                src="/paul-check.gif"
+                alt="Paul Check"
+                width={32}
+                height={32}
+                className="rounded"
+              />
               <span className="text-xl font-bold text-gray-900">
                 UX Checker
               </span>
@@ -89,7 +93,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="border-t pt-8 mt-12 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-600 text-sm">
-            © 2025 UX Checker. Alle Rechte vorbehalten.
+            © 2025 Paul AI. Alle Rechte vorbehalten.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link

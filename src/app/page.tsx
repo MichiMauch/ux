@@ -8,7 +8,7 @@ import { Footer } from "@/components/layout/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles, Shield, Zap, Target } from "lucide-react";
-import { WebsiteType, AnalysisResult } from "@/types/analysis";
+import { WebsiteType, AnalysisResult, AnalysisCategory } from "@/types/analysis";
 
 type AppState =
   | { stage: "input" }
@@ -59,6 +59,52 @@ export default function Home() {
       }
 
       const analysisResult = await analyzeResponse.json();
+
+      // Immediately save UX analysis data
+      try {
+        const saveResponse = await fetch("/api/start-check", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: "",
+            url: analysisResult.url,
+            websiteType: analysisResult.websiteType,
+            uxAnalysis: {
+              score: analysisResult.overallScore,
+              details: analysisResult.categories.map((cat: AnalysisCategory) => ({
+                category: cat.name,
+                score: cat.score,
+              })),
+            },
+            pageSpeedData: [],
+            metaTagsData: {
+              score: 0,
+              total: 0,
+              present: 0,
+              missing: 0,
+              tags: [],
+            },
+          }),
+        });
+
+        const saveResult = await saveResponse.json();
+        if (saveResult.success) {
+          // Store analysisId in the result for later updates
+          analysisResult.analysisId = saveResult.analysisId;
+          console.log(
+            "UX-Analyse sofort gespeichert, analysisId:",
+            saveResult.analysisId
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Fehler beim sofortigen Speichern der UX-Analyse:",
+          error
+        );
+      }
+
       setAppState({ stage: "results", analysis: analysisResult });
     } catch (error) {
       console.error("Analysis error:", error);
@@ -92,7 +138,7 @@ export default function Home() {
                   Powered by OpenAI GPT-4 Vision
                 </Badge>
                 <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                  Professionelle UX-Analyse
+                  Professional website check with Paul AI
                 </h1>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                   Erhalten Sie detaillierte Insights zur User Experience Ihrer

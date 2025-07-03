@@ -27,14 +27,17 @@ GOOGLE_PAGESPEED_API_KEY=your-google-pagespeed-api-key-here
 Analysiert die Performance einer Website mit Google PageSpeed Insights.
 
 **Parameter:**
+
 - `url` (required): Die zu analysierende URL
 
 **Beispiel:**
+
 ```
 GET /api/pagespeed?url=https://example.com
 ```
 
 **Response:**
+
 ```json
 {
   "performance": 85,
@@ -49,11 +52,11 @@ GET /api/pagespeed?url=https://example.com
       "displayValue": "1.2 s"
     },
     "largestContentfulPaint": {
-      "id": "largest-contentful-paint", 
+      "id": "largest-contentful-paint",
       "title": "Largest Contentful Paint",
       "score": 75,
       "displayValue": "2.1 s"
-    },
+    }
     // ... weitere Metriken
   },
   "opportunities": [
@@ -77,13 +80,14 @@ GET /api/pagespeed?url=https://example.com
 Die `PageSpeedCard` Komponente verwendet SWR für asynchrones Laden der PageSpeed-Daten:
 
 ```tsx
-import { PageSpeedCard } from '@/components/analysis/pagespeed-card';
+import { PageSpeedCard } from "@/components/analysis/pagespeed-card";
 
 // In deiner Komponente
-<PageSpeedCard url="https://example.com" />
+<PageSpeedCard url="https://example.com" />;
 ```
 
 **Features:**
+
 - ✅ Automatisches Laden im Hintergrund
 - ✅ Loading-State mit Animation
 - ✅ Error-Handling mit hilfreichen Fehlermeldungen
@@ -121,11 +125,13 @@ Die Komponente zeigt die wichtigsten Core Web Vitals:
 ## Bewertungssystem
 
 ### Scores (0-100)
+
 - **90-100**: Grün (Ausgezeichnet)
 - **50-89**: Gelb (Verbesserungsbedarf)
 - **0-49**: Rot (Schlecht)
 
 ### Kategorien
+
 - **Performance**: Ladegeschwindigkeit und Core Web Vitals
 - **Accessibility**: Barrierefreiheit der Website
 - **Best Practices**: Moderne Web-Standards
@@ -136,12 +142,13 @@ Die Komponente zeigt die wichtigsten Core Web Vitals:
 Die API behandelt verschiedene Fehlertypen:
 
 1. **Fehlende URL**: HTTP 400
-2. **Ungültige URL**: HTTP 400  
+2. **Ungültige URL**: HTTP 400
 3. **API-Key nicht konfiguriert**: HTTP 500
 4. **Google API Fehler**: HTTP 500 mit Details
 5. **Netzwerk-Fehler**: HTTP 500
 
 Im Frontend werden Fehler benutzerfreundlich angezeigt mit:
+
 - Klarer Fehlermeldung
 - Möglichen Ursachen
 - Retry-Mechanismus
@@ -149,16 +156,19 @@ Im Frontend werden Fehler benutzerfreundlich angezeigt mit:
 ## Tipps
 
 ### Performance optimieren
+
 - API-Calls werden automatisch dedupliziert
 - Ergebnisse werden für 1 Minute gecacht
 - Komponente lädt nur bei Bedarf
 
 ### API-Limits beachten
+
 - Google PageSpeed Insights hat Quotas
 - Bei vielen Anfragen ggf. Caching erweitern
 - Monitoring der API-Nutzung empfohlen
 
 ### Mobile vs. Desktop
+
 - Aktuell wird Desktop-Performance analysiert
 - Für Mobile-Analyse `strategy=mobile` Parameter verwenden
 - Beide Strategien in separaten Requests möglich
@@ -186,6 +196,7 @@ Im Frontend werden Fehler benutzerfreundlich angezeigt mit:
 ### Debug-Logs
 
 Server-Logs zeigen Details:
+
 ```bash
 npm run dev
 # In Browser Console oder Server Terminal
@@ -194,6 +205,7 @@ npm run dev
 ## Weiterentwicklung
 
 ### Mögliche Erweiterungen
+
 - Mobile + Desktop Analyse parallel
 - Historische Daten speichern
 - Performance-Trends über Zeit
@@ -201,6 +213,7 @@ npm run dev
 - Automatische Performance-Reports
 
 ### Code-Struktur
+
 ```
 src/
 ├── app/api/pagespeed/route.ts          # API-Endpunkt

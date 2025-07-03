@@ -29,6 +29,28 @@ export async function POST(request: NextRequest) {
       
       const result: AnalysisResult = {
         id: generateId(),
+        lead: {
+          email: "",
+          url,
+          websiteType
+        },
+        data: {
+          uxAnalysis: {
+            score: analysis.overallScore,
+            details: analysis.categories.map(cat => ({
+              category: cat.name,
+              score: cat.score
+            }))
+          },
+          pageSpeedData: [],
+          metaTagsData: {
+            score: 0,
+            total: 0,
+            present: 0,
+            missing: 0,
+            tags: []
+          }
+        },
         url,
         websiteType,
         analysisType: 'ux-analysis',

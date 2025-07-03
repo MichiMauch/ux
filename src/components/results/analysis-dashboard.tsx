@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,9 @@ import { ScoreCard } from "./score-card";
 import { AdditionalChecks } from "./additional-checks";
 import PageSpeedCard from "./pagespeed-card";
 import MetaTagsCard from "./meta-tags-card";
-import useSWR from 'swr';
+import GetReportForm from "../reports/GetReportForm";
+import useSWR from "swr";
+import { MetaTag } from "@/types/analysis";
 import {
   Monitor,
   Smartphone,
@@ -34,15 +36,24 @@ export function AnalysisDashboard({
   analysis,
   onNewAnalysis,
 }: AnalysisDashboardProps) {
-  const [selectedView, setSelectedView] = useState<"desktop" | "mobile">("desktop");
-  const [activeTab, setActiveTab] = useState<"ux" | "speed" | "meta">("ux");
+  const [selectedView, setSelectedView] = useState<"desktop" | "mobile">(
+    "desktop"
+  );
+  const [activeTab, setActiveTab] = useState<
+    "ux" | "speed" | "meta" | "report"
+  >("ux");
   const [showAdditionalChecks, setShowAdditionalChecks] = useState(false);
 
-  // Monitor loading states of different analyses
-  const fetcher = (url: string) => fetch(url).then(res => res.json());
-  
-  const { isLoading: speedLoading } = useSWR(
-    `/api/pagespeed?url=${encodeURIComponent(analysis.url)}`,
+  // Monitor loading states of different analyses and save incrementally
+  const fetcher = (url: string) => fetch(url).then((res) => res.json());
+  const [savedData, setSavedData] = useState({
+    pageSpeedDesktop: false,
+    pageSpeedMobile: false,
+    metaTags: false
+  });
+
+  const { data: pageSpeedDesktop, isLoading: speedLoadingDesktop } = useSWR(
+    `/api/pagespeed?url=${encodeURIComponent(analysis.url)}&strategy=desktop`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -50,7 +61,16 @@ export function AnalysisDashboard({
     }
   );
 
-  const { isLoading: metaLoading } = useSWR(
+  const { data: pageSpeedMobile, isLoading: speedLoadingMobile } = useSWR(
+    `/api/pagespeed?url=${encodeURIComponent(analysis.url)}&strategy=mobile`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+
+  const { data: metaTagsData, isLoading: metaLoading } = useSWR(
     `/api/meta-tags?url=${encodeURIComponent(analysis.url)}`,
     fetcher,
     {
@@ -58,6 +78,143 @@ export function AnalysisDashboard({
       revalidateOnReconnect: false,
     }
   );
+
+  // Save PageSpeed Desktop data incrementally
+  const savePageSpeedDesktopData = useCallback(async () => {
+    if (savedData.pageSpeedDesktop || speedLoadingDesktop || !pageSpeedDesktop || !analysis.analysisId) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/update-analysis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          analysisId: analysis.analysisId,
+          pageSpeedData: [
+            {
+              strategy: 'desktop',
+              performance: pageSpeedDesktop.performance,
+              accessibility: pageSpeedDesktop.accessibility,
+              bestPractices: pageSpeedDesktop.bestPractices,
+              seo: pageSpeedDesktop.seo
+            }
+          ]
+        }),
+      });
+
+      if (response.ok) {
+        setSavedData(prev => ({ ...prev, pageSpeedDesktop: true }));
+        console.log("PageSpeed Desktop aktualisiert für Analysis ID:", analysis.analysisId);
+      }
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren der PageSpeed Desktop-Daten:", error);
+    }
+  }, [savedData.pageSpeedDesktop, speedLoadingDesktop, pageSpeedDesktop, analysis.analysisId]);
+
+  // Save PageSpeed Mobile data incrementally
+  const savePageSpeedMobileData = useCallback(async () => {
+    if (savedData.pageSpeedMobile || speedLoadingMobile || !pageSpeedMobile || !analysis.analysisId) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/update-analysis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          analysisId: analysis.analysisId,
+          pageSpeedData: [
+            {
+              strategy: 'mobile',
+              performance: pageSpeedMobile.performance,
+              accessibility: pageSpeedMobile.accessibility,
+              bestPractices: pageSpeedMobile.bestPractices,
+              seo: pageSpeedMobile.seo
+            }
+          ]
+        }),
+      });
+
+      if (response.ok) {
+        setSavedData(prev => ({ ...prev, pageSpeedMobile: true }));
+        console.log("PageSpeed Mobile aktualisiert für Analysis ID:", analysis.analysisId);
+      }
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren der PageSpeed Mobile-Daten:", error);
+    }
+  }, [savedData.pageSpeedMobile, speedLoadingMobile, pageSpeedMobile, analysis.analysisId]);
+
+  // Save Meta Tags data incrementally
+  const saveMetaTagsData = useCallback(async () => {
+    console.log('saveMetaTagsData called:', {
+      savedData: savedData.metaTags,
+      metaLoading,
+      hasMetaTagsData: !!metaTagsData,
+      hasAnalysisId: !!analysis.analysisId,
+      metaTagsDataStructure: metaTagsData ? Object.keys(metaTagsData) : null
+    });
+
+    if (savedData.metaTags || metaLoading || !metaTagsData || !analysis.analysisId) {
+      console.log('saveMetaTagsData: Early return, not saving');
+      return;
+    }
+
+    console.log('saveMetaTagsData: Processing meta tags data:', metaTagsData);
+
+    try {
+      const transformedData = {
+        score: metaTagsData.summary?.score || 0,
+        total: metaTagsData.summary?.total || 0,
+        present: metaTagsData.summary?.present || 0,
+        missing: metaTagsData.summary?.missing || 0,
+        tags: metaTagsData.checks?.map((check: MetaTag) => ({
+          tag: check.tag,
+          content: check.content || '',
+          status: check.present ? 'present' : 'missing'
+        })) || []
+      };
+
+      console.log('saveMetaTagsData: Transformed data:', transformedData);
+
+      const response = await fetch("/api/update-analysis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          analysisId: analysis.analysisId,
+          metaTagsData: transformedData
+        }),
+      });
+
+      if (response.ok) {
+        setSavedData(prev => ({ ...prev, metaTags: true }));
+        console.log("Meta-Tags-Daten aktualisiert für Analysis ID:", analysis.analysisId);
+      } else {
+        console.error("Meta Tags update failed:", await response.text());
+      }
+    } catch (error) {
+      console.error("Fehler beim Aktualisieren der Meta-Tags-Daten:", error);
+    }
+  }, [savedData.metaTags, metaLoading, metaTagsData, analysis.analysisId]);
+
+  // Trigger incremental saves when data is available
+  useEffect(() => {
+    savePageSpeedDesktopData();
+  }, [savePageSpeedDesktopData]);
+
+  useEffect(() => {
+    savePageSpeedMobileData();
+  }, [savePageSpeedMobileData]);
+
+  useEffect(() => {
+    saveMetaTagsData();
+  }, [saveMetaTagsData]);
 
   const getOverallScoreColor = (score: number) => {
     if (score >= 8) return "text-green-600 bg-green-50";
@@ -138,10 +295,10 @@ export function AnalysisDashboard({
             {analysis.websiteType === "corporate"
               ? "Corporate Website"
               : analysis.websiteType === "ecommerce"
-              ? "E-Commerce Shop"
-              : analysis.websiteType === "blog"
-              ? "Blog/Content Website"
-              : "SaaS/Software Website"}
+                ? "E-Commerce Shop"
+                : analysis.websiteType === "blog"
+                  ? "Blog/Content Website"
+                  : "SaaS/Software Website"}
           </Badge>
           <Button onClick={onNewAnalysis} variant="outline">
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -180,7 +337,7 @@ export function AnalysisDashboard({
             <div className="flex items-center space-x-2">
               <Zap className="h-4 w-4" />
               <span>Speed Test</span>
-              {speedLoading ? (
+              {(speedLoadingDesktop || speedLoadingMobile) ? (
                 <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
               ) : (
                 <Badge variant="outline" className="bg-green-50 text-green-600">
@@ -207,6 +364,19 @@ export function AnalysisDashboard({
                   ✓
                 </Badge>
               )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("report")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "report"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Download className="h-4 w-4" />
+              <span>PDF Report</span>
             </div>
           </button>
         </nav>
@@ -320,9 +490,13 @@ export function AnalysisDashboard({
                       <ArrowRight className="h-4 w-4 mr-2" />
                       Erweiterte Analysen
                     </Button>
-                    <Button variant="outline" className="flex items-center">
+                    <Button
+                      variant="outline"
+                      className="flex items-center"
+                      onClick={() => setActiveTab("report")}
+                    >
                       <Download className="h-4 w-4 mr-2" />
-                      PDF-Report
+                      PDF-Report erhalten
                     </Button>
                   </div>
                 </CardContent>
@@ -333,10 +507,7 @@ export function AnalysisDashboard({
           {activeTab === "speed" && (
             <>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Performance Analyse
-                </h2>
-                <PageSpeedCard url={analysis.url} />
+                <PageSpeedCard url={analysis.url} analysisId={analysis.analysisId} />
               </div>
             </>
           )}
@@ -344,10 +515,15 @@ export function AnalysisDashboard({
           {activeTab === "meta" && (
             <>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Meta Tags Analyse
-                </h2>
                 <MetaTagsCard url={analysis.url} />
+              </div>
+            </>
+          )}
+
+          {activeTab === "report" && (
+            <>
+              <div>
+                <GetReportForm url={analysis.url} uxAnalysis={analysis} analysisId={analysis.analysisId} />
               </div>
             </>
           )}
