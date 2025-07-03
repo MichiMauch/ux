@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScoreCard } from "./score-card";
 import { AdditionalChecks } from "./additional-checks";
+import PageSpeedCard from "./pagespeed-card";
 import {
   Monitor,
   Smartphone,
@@ -167,6 +168,14 @@ export function AnalysisDashboard({
             <ScoreCard key={index} category={category} />
           ))}
         </div>
+      </div>
+
+      {/* PageSpeed Insights */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          Performance Analyse
+        </h2>
+        <PageSpeedCard url={analysis.url} />
       </div>
 
       {/* Screenshots */}

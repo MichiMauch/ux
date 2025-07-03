@@ -1,7 +1,9 @@
 # UX Website Checker
 
 Eine moderne Web-App # Nodehive Screenshot API (kostenlos für Full-Page-Screenshots)
+
 # Keine API-Key erforderlich - verwendet preview.nodehive.com
+
 # SCREENSHOT_ONE_ACCESS_KEY=your_screenshot_one_api_key_here (optional, Fallback) automatisierte UX-Analysen von Websites mit KI-Power. Die App erstellt Screenshots von Desktop- und Mobile-Versionen einer Website und nutzt OpenAI Vision API für detaillierte UX-Bewertungen.
 
 ## 🚀 Features
@@ -55,6 +57,7 @@ SCREENSHOT_ONE_ACCESS_KEY=your_screenshot_one_access_key_here
 Die App unterstützt verschiedene Website-Typen mit spezifischen Analyse-Kriterien:
 
 ### Corporate Websites
+
 - **Navigation & Struktur**: Hauptnavigation, Breadcrumbs, Footer-Navigation
 - **Content-Hierarchie**: Überschriften-Struktur, Informationshierarchie, Lesbarkeit
 - **Call-to-Actions**: CTA-Erkennbarkeit, Kontaktmöglichkeiten, Handlungsaufforderungen
@@ -62,6 +65,7 @@ Die App unterstützt verschiedene Website-Typen mit spezifischen Analyse-Kriteri
 - **Trust & Credibility**: Professionelles Erscheinungsbild, Kontaktdaten, Rechtliches
 
 ### E-Commerce Websites
+
 - **Product Presentation**: Produktsichtbarkeit, Bildqualität, Preisdarstellung
 - **Navigation & Search**: Kategorienübersicht, Suchfunktion, Filter-Optionen
 - **Trust Signals**: Gütesiegel, Kundenbewertungen, Sicherheitshinweise
@@ -69,6 +73,7 @@ Die App unterstützt verschiedene Website-Typen mit spezifischen Analyse-Kriteri
 - **Mobile Shopping**: Mobile Checkout, Touch-friendly Galerie, Ladezeiten
 
 ### SaaS Platforms
+
 - **Product Clarity**: Feature-Darstellung, Nutzen-Kommunikation, Preismodell
 - **Onboarding**: Anmeldeprozess, Demo-Zugang, Erste Schritte
 - **Trust Building**: Kundenstimmen, Case Studies, Sicherheit
@@ -190,7 +195,8 @@ Die App verwendet jetzt die kostenlose Nodehive API für Full-Page-Screenshots:
 4. **Modal-Dismissal** - Automatisches Schließen von Pop-ups und Cookie-Bannern
 
 **Features:**
-- Desktop: 1920x1080 Full-Page-Screenshot  
+
+- Desktop: 1920x1080 Full-Page-Screenshot
 - Mobile: 375x812 Full-Page-Screenshot
 - 3 Sekunden Wartezeit für vollständiges Laden
 - Automatisches Schließen von Modals/Pop-ups
@@ -212,7 +218,7 @@ Die ScreenshotOne API bleibt als Fallback verfügbar, falls Nodehive nicht funkt
 
 - **Weitere Website-Typen**: Blog, Portfolio, Government, Healthcare
 - **Batch-Analyse**: Multiple URLs gleichzeitig
-- **Historical Tracking**: Vergleich über Zeit  
+- **Historical Tracking**: Vergleich über Zeit
 - **PDF-Reports**: Exportierbare Berichte
 - **User-Accounts**: Gespeicherte Analysen
 - **API für Drittanbieter**: Webhook-Integration
