@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import useSWR from 'swr';
-import { useEffect, useState } from 'react';
 import { Clock, Zap, Eye, Lightbulb, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface PageSpeedMetric {
@@ -97,48 +96,53 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
     }
   );
 
-  // State for recommendations
-  const [recommendationsData, setRecommendationsData] = useState<RecommendationsResult | null>(null);
-  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
-  const [recommendationsError, setRecommendationsError] = useState<string | null>(null);
+  // Create a stable cache key for recommendations
+  const recommendationsCacheKey = pagespeedData && pagespeedData.opportunities.length > 0
+    ? `recommendations:${url}:${pagespeedData.opportunities.map(o => o.id).sort().join(',')}`
+    : null;
 
-  // Load recommendations when PageSpeed data is available
-  useEffect(() => {
-    if (pagespeedData && pagespeedData.opportunities.length > 0) {
-      setRecommendationsLoading(true);
-      setRecommendationsError(null);
-      
-      fetch('/api/pagespeed-recommendations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          opportunities: pagespeedData.opportunities,
-          url: pagespeedData.url,
-          scores: {
-            performance: pagespeedData.performance,
-            accessibility: pagespeedData.accessibility,
-            bestPractices: pagespeedData.bestPractices,
-            seo: pagespeedData.seo
-          }
-        })
-      })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  // Custom fetcher for recommendations with POST request
+  const recommendationsFetcher = async () => {
+    if (!pagespeedData) throw new Error('No PageSpeed data available');
+    
+    const response = await fetch('/api/pagespeed-recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        opportunities: pagespeedData.opportunities,
+        url: pagespeedData.url,
+        scores: {
+          performance: pagespeedData.performance,
+          accessibility: pagespeedData.accessibility,
+          bestPractices: pagespeedData.bestPractices,
+          seo: pagespeedData.seo
         }
-        return res.json();
       })
-      .then(data => {
-        setRecommendationsData(data);
-        setRecommendationsLoading(false);
-      })
-      .catch(error => {
-        console.error('Error loading recommendations:', error);
-        setRecommendationsError(error.message);
-        setRecommendationsLoading(false);
-      });
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-  }, [pagespeedData]);
+    
+    return response.json();
+  };
+
+  // Use SWR for persistent caching of recommendations
+  const { 
+    data: recommendationsData, 
+    error: recommendationsError, 
+    isLoading: recommendationsLoading 
+  } = useSWR<RecommendationsResult>(
+    recommendationsCacheKey,
+    recommendationsFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60 * 60 * 1000, // 1 hour - stable caching
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+    }
+  );
 
   if (pagespeedError) {
     return (
@@ -257,7 +261,7 @@ export default function PageSpeedCard({ url }: PageSpeedCardProps) {
                   <div className="text-red-600 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
                     Handlungsempfehlungen konnten nicht geladen werden.
-                    <div className="text-sm text-gray-500 mt-1">Fehler: {recommendationsError}</div>
+                    <div className="text-sm text-gray-500 mt-1">Fehler: {recommendationsError.message || recommendationsError}</div>
                   </div>
                 ) : recommendationsData?.recommendations ? (
                   <div className="space-y-4">

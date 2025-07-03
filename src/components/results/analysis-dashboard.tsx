@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ScoreCard } from "./score-card";
 import { AdditionalChecks } from "./additional-checks";
 import PageSpeedCard from "./pagespeed-card";
+import MetaTagsCard from "./meta-tags-card";
+import useSWR from 'swr';
 import {
   Monitor,
   Smartphone,
@@ -16,6 +18,10 @@ import {
   Download,
   RotateCcw,
   ArrowRight,
+  Zap,
+  Eye,
+  Tags,
+  Loader2,
 } from "lucide-react";
 import { AnalysisResult } from "@/types/analysis";
 
@@ -28,10 +34,30 @@ export function AnalysisDashboard({
   analysis,
   onNewAnalysis,
 }: AnalysisDashboardProps) {
-  const [selectedView, setSelectedView] = useState<"desktop" | "mobile">(
-    "desktop"
-  );
+  const [selectedView, setSelectedView] = useState<"desktop" | "mobile">("desktop");
+  const [activeTab, setActiveTab] = useState<"ux" | "speed" | "meta">("ux");
   const [showAdditionalChecks, setShowAdditionalChecks] = useState(false);
+
+  // Monitor loading states of different analyses
+  const fetcher = (url: string) => fetch(url).then(res => res.json());
+  
+  const { isLoading: speedLoading } = useSWR(
+    `/api/pagespeed?url=${encodeURIComponent(analysis.url)}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+
+  const { isLoading: metaLoading } = useSWR(
+    `/api/meta-tags?url=${encodeURIComponent(analysis.url)}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
 
   const getOverallScoreColor = (score: number) => {
     if (score >= 8) return "text-green-600 bg-green-50";
@@ -58,7 +84,6 @@ export function AnalysisDashboard({
 
   // Wenn zusätzliche Checks angezeigt werden sollen
   if (showAdditionalChecks) {
-    // Mock-Daten für zusätzliche Checks basierend auf der Analyse
     const additionalChecks = [
       {
         name: "Responsivität",
@@ -90,7 +115,7 @@ export function AnalysisDashboard({
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8">
+    <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -125,67 +150,77 @@ export function AnalysisDashboard({
         </div>
       </div>
 
-      {/* Overall Score */}
-      <Card>
-        <CardContent className="p-8">
-          <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
-            <div className="text-center lg:text-left">
-              <div
-                className={`inline-flex items-center justify-center w-32 h-32 rounded-full text-4xl font-bold ${getOverallScoreColor(
-                  analysis.overallScore
-                )}`}
-              >
-                {analysis.overallScore.toFixed(1)}
-              </div>
-              <div className="mt-4">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Gesamt-Score
-                </h3>
-                <p className="text-lg text-gray-600">
-                  {getOverallScoreText(analysis.overallScore)}
-                </p>
-              </div>
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab("ux")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "ux"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Eye className="h-4 w-4" />
+              <span>UX Check</span>
+              <Badge variant="outline" className="bg-green-50 text-green-600">
+                ✓
+              </Badge>
             </div>
-            <div className="flex-1">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                Zusammenfassung
-              </h4>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                {analysis.summary}
-              </p>
+          </button>
+          <button
+            onClick={() => setActiveTab("speed")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "speed"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Zap className="h-4 w-4" />
+              <span>Speed Test</span>
+              {speedLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+              ) : (
+                <Badge variant="outline" className="bg-green-50 text-green-600">
+                  ✓
+                </Badge>
+              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Scores */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Detaillierte Bewertung
-        </h2>
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          {analysis.categories.map((category, index) => (
-            <ScoreCard key={index} category={category} />
-          ))}
-        </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("meta")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "meta"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Tags className="h-4 w-4" />
+              <span>Meta Tags</span>
+              {metaLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+              ) : (
+                <Badge variant="outline" className="bg-green-50 text-green-600">
+                  ✓
+                </Badge>
+              )}
+            </div>
+          </button>
+        </nav>
       </div>
 
-      {/* PageSpeed Insights */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Performance Analyse
-        </h2>
-        <PageSpeedCard url={analysis.url} />
-      </div>
-
-      {/* Screenshots */}
-      {analysis.screenshots && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Screenshots (33%) */}
+        <div className="lg:col-span-1">
+          <Card className="sticky top-6">
+            <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5" />
-                <span>Website Screenshots</span>
+                <span>Screenshots</span>
               </CardTitle>
               <div className="flex items-center space-x-2">
                 <Button
@@ -205,47 +240,119 @@ export function AnalysisDashboard({
                   Mobile
                 </Button>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-50 rounded-lg p-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={
-                  selectedView === "desktop"
-                    ? analysis.screenshots.desktop
-                    : analysis.screenshots.mobile
-                }
-                alt={`${selectedView} Screenshot`}
-                className="w-full h-auto rounded border shadow-sm"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardHeader>
+            <CardContent>
+              {analysis.screenshots && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={
+                      selectedView === "desktop"
+                        ? analysis.screenshots.desktop
+                        : analysis.screenshots.mobile
+                    }
+                    alt={`${selectedView} Screenshot`}
+                    className="w-full h-auto rounded border shadow-sm"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Action Buttons */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => setShowAdditionalChecks(true)}
-              className="flex items-center"
-            >
-              <ArrowRight className="h-4 w-4 mr-2" />
-              Erweiterte Analysen starten
-            </Button>
-            <Button variant="outline" className="flex items-center">
-              <Download className="h-4 w-4 mr-2" />
-              PDF-Report herunterladen
-            </Button>
-            <Button variant="outline" onClick={onNewAnalysis}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Weitere Website analysieren
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Right Column - Tab Content (66%) */}
+        <div className="lg:col-span-2 space-y-6">
+          {activeTab === "ux" && (
+            <>
+              {/* Overall Score */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                    <div className="text-center md:text-left">
+                      <div
+                        className={`inline-flex items-center justify-center w-24 h-24 rounded-full text-3xl font-bold ${getOverallScoreColor(
+                          analysis.overallScore
+                        )}`}
+                      >
+                        {analysis.overallScore.toFixed(1)}
+                      </div>
+                      <div className="mt-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Gesamt-Score
+                        </h3>
+                        <p className="text-gray-600">
+                          {getOverallScoreText(analysis.overallScore)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                        Zusammenfassung
+                      </h4>
+                      <p className="text-gray-700 leading-relaxed">
+                        {analysis.summary}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Detailed Scores */}
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Detaillierte Bewertung
+                </h2>
+                <div className="grid gap-4 md:grid-cols-1">
+                  {analysis.categories.map((category, index) => (
+                    <ScoreCard key={index} category={category} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={() => setShowAdditionalChecks(true)}
+                      className="flex items-center"
+                    >
+                      <ArrowRight className="h-4 w-4 mr-2" />
+                      Erweiterte Analysen
+                    </Button>
+                    <Button variant="outline" className="flex items-center">
+                      <Download className="h-4 w-4 mr-2" />
+                      PDF-Report
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {activeTab === "speed" && (
+            <>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Performance Analyse
+                </h2>
+                <PageSpeedCard url={analysis.url} />
+              </div>
+            </>
+          )}
+
+          {activeTab === "meta" && (
+            <>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Meta Tags Analyse
+                </h2>
+                <MetaTagsCard url={analysis.url} />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
