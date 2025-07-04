@@ -50,18 +50,18 @@ interface MetaTagsCardProps {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const getScoreColor = (score: number) => {
-  if (score >= 85) return "text-green-600";
-  if (score >= 60) return "text-yellow-600";
-  return "text-red-600";
+  if (score >= 85) return "text-success-600";
+  if (score >= 60) return "text-warning-600";
+  return "text-danger-600";
 };
 
 const getStatusIcon = (present: boolean, hasContent: boolean = true) => {
   if (present && hasContent) {
-    return <CheckCircle className="h-4 w-4 text-green-600" />;
+    return <CheckCircle className="h-4 w-4 text-success-600" />;
   } else if (present && !hasContent) {
-    return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+    return <AlertTriangle className="h-4 w-4 text-warning-600" />;
   } else {
-    return <XCircle className="h-4 w-4 text-red-600" />;
+    return <XCircle className="h-4 w-4 text-danger-600" />;
   }
 };
 
@@ -174,7 +174,7 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
                   !!(tag.content && tag.content.trim().length > 0)
                 )}
               </td>
-              <td className="py-2 px-3 font-mono text-sm text-blue-600">
+              <td className="py-2 px-3 font-mono text-sm text-primary-600">
                 {tag.tag}
               </td>
               <td className="py-2 px-3 text-sm text-gray-700">
@@ -215,19 +215,19 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
             <Progress value={data.summary.score} className="mt-1" />
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success-600">
               {data.summary.present}
             </div>
             <div className="text-sm text-muted-foreground">Vorhanden</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-danger-600">
               {data.summary.missing}
             </div>
             <div className="text-sm text-muted-foreground">Fehlend</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-primary-600">
               {data.summary.total}
             </div>
             <div className="text-sm text-muted-foreground">Gesamt</div>
@@ -241,7 +241,7 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
               onClick={() => setActiveTab("meta")}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === "meta"
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-primary-500 text-primary-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -255,7 +255,7 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
               onClick={() => setActiveTab("opengraph")}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === "opengraph"
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-primary-500 text-primary-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -270,7 +270,7 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
               onClick={() => setActiveTab("twitter")}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === "twitter"
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-primary-500 text-primary-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -285,13 +285,13 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
               onClick={() => setActiveTab("recommendations")}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                 activeTab === "recommendations"
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-primary-500 text-primary-600"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
               <Lightbulb className="h-4 w-4" />
               Empfehlungen
-              <Badge variant="outline" className="ml-1 bg-red-50 text-red-600">
+              <Badge variant="outline" className="ml-1 bg-danger-50 text-danger-600">
                 {missingTags.length}
               </Badge>
             </button>
@@ -338,7 +338,7 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
               </h4>
               {missingTags.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <CheckCircle className="h-12 w-12 mx-auto text-green-600 mb-3" />
+                  <CheckCircle className="h-12 w-12 mx-auto text-success-600 mb-3" />
                   <p className="text-lg font-medium text-gray-900 mb-1">
                     Alle Meta Tags vorhanden!
                   </p>
@@ -352,16 +352,16 @@ export default function MetaTagsCard({ url }: MetaTagsCardProps) {
                   {missingTags.map((tag, index) => (
                     <div
                       key={index}
-                      className="border rounded-lg p-4 bg-red-50"
+                      className="border rounded-lg p-4 bg-danger-50"
                     >
                       <div className="flex items-start gap-3">
-                        <XCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                        <XCircle className="h-5 w-5 text-danger-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <Badge variant="outline" className="text-xs">
                               {tag.group}
                             </Badge>
-                            <code className="text-sm font-mono text-red-600 bg-red-100 px-2 py-1 rounded">
+                            <code className="text-sm font-mono text-danger-600 bg-danger-100 px-2 py-1 rounded">
                               {tag.tag}
                             </code>
                           </div>

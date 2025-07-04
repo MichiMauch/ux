@@ -14,7 +14,7 @@ import GeoCheckCard from "./geo-check-card";
 import GetReportForm from "../reports/GetReportForm";
 import useSWR from "swr";
 import { MetaTag } from "@/types/analysis";
-import { 
+import {
   Monitor,
   Smartphone,
   TrendingUp,
@@ -26,12 +26,10 @@ import {
   Zap,
   Eye,
   Tags,
-  Image as ImageIcon,
+  Image,
   Share2,
   Bot,
   Loader2,
-  ChevronDown,
-  LucideProps // Import LucideProps
 } from "lucide-react";
 import { AnalysisResult } from "@/types/analysis";
 
@@ -40,61 +38,16 @@ interface AnalysisDashboardProps {
   onNewAnalysis: () => void;
 }
 
-interface TabConfig {
-  id: string;
-  label: string;
-  icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
-  badge?: string; // Make badge optional
-}
-
-// Navigation structure
-const NAVIGATION_CONFIG: {
-  [key: string]: {
-    label: string;
-    icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
-    tabs: TabConfig[];
-  };
-} = {
-  analysis: {
-    label: "UX Analyse",
-    icon: Eye,
-    tabs: [
-      { id: "ux", label: "UX Check", icon: Eye }
-    ]
-  },
-  seo: {
-    label: "SEO & Meta",
-    icon: Tags,
-    tabs: [
-      { id: "meta", label: "Meta Tags", icon: Tags },
-      { id: "favicon", label: "Favicon & Icons", icon: ImageIcon },
-      { id: "preview", label: "Social Preview", icon: Share2 }
-    ]
-  },
-  performance: {
-    label: "Performance",
-    icon: Zap,
-    tabs: [
-      { id: "speed", label: "Speed Test", icon: Zap },
-      { id: "geo", label: "GEO Check", icon: Bot, badge: "NEW" }
-    ]
-  },
-  reports: {
-    label: "Reports",
-    icon: Download,
-    tabs: [
-      { id: "report", label: "PDF Report", icon: Download }
-    ]
-  }
-};
-
 export function AnalysisDashboard({
   analysis,
   onNewAnalysis,
 }: AnalysisDashboardProps) {
-  const [selectedView, setSelectedView] = useState<"desktop" | "mobile">("desktop");
-  const [activeCategory, setActiveCategory] = useState<"analysis" | "seo" | "performance" | "reports">("analysis");
-  const [activeTab, setActiveTab] = useState<string>("ux");
+  const [selectedView, setSelectedView] = useState<"desktop" | "mobile">(
+    "desktop"
+  );
+  const [activeTab, setActiveTab] = useState<
+    "ux" | "speed" | "meta" | "favicon" | "preview" | "geo" | "report"
+  >("ux");
   const [showAdditionalChecks, setShowAdditionalChecks] = useState(false);
 
   // Monitor loading states of different analyses and save incrementally
@@ -151,7 +104,7 @@ export function AnalysisDashboard({
     }
   );
 
-  // Save functions (keeping existing logic)
+  // Save PageSpeed Desktop data incrementally
   const savePageSpeedDesktopData = useCallback(async () => {
     if (savedData.pageSpeedDesktop || speedLoadingDesktop || !pageSpeedDesktop || !analysis.analysisId) {
       return;
@@ -186,6 +139,7 @@ export function AnalysisDashboard({
     }
   }, [savedData.pageSpeedDesktop, speedLoadingDesktop, pageSpeedDesktop, analysis.analysisId]);
 
+  // Save PageSpeed Mobile data incrementally
   const savePageSpeedMobileData = useCallback(async () => {
     if (savedData.pageSpeedMobile || speedLoadingMobile || !pageSpeedMobile || !analysis.analysisId) {
       return;
@@ -220,6 +174,7 @@ export function AnalysisDashboard({
     }
   }, [savedData.pageSpeedMobile, speedLoadingMobile, pageSpeedMobile, analysis.analysisId]);
 
+  // Save Meta Tags data incrementally
   const saveMetaTagsData = useCallback(async () => {
     console.log('saveMetaTagsData called:', {
       savedData: savedData.metaTags,
@@ -273,6 +228,8 @@ export function AnalysisDashboard({
     }
   }, [savedData.metaTags, metaLoading, metaTagsData, analysis.analysisId]);
 
+  // Save GEO Check data incrementally
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const saveGeoCheckData = useCallback(async (geoData: any) => {
     if (savedData.geoCheck || !geoData || !analysis.analysisId) {
       return;
@@ -281,6 +238,7 @@ export function AnalysisDashboard({
     try {
       console.log('saveGeoCheckData: Starting to save GEO data', geoData);
 
+      // Transform GEO data for database storage
       const transformedData = {
         score: geoData.score,
         factors: geoData.factors,
@@ -345,26 +303,6 @@ export function AnalysisDashboard({
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const isLoading = (category: string) => {
-    switch (category) {
-      case "seo":
-        return metaLoading || faviconLoading || socialPreviewLoading;
-      case "performance":
-        return speedLoadingDesktop || speedLoadingMobile;
-      default:
-        return false;
-    }
-  };
-
-  const handleCategoryChange = (category: keyof typeof NAVIGATION_CONFIG) => {
-    setActiveCategory(category as "performance" | "seo" | "analysis" | "reports");
-    setActiveTab(NAVIGATION_CONFIG[category].tabs[0].id);
-  };
-
-  const getCurrentCategoryTabs = () => {
-    return NAVIGATION_CONFIG[activeCategory]?.tabs || [];
   };
 
   // Wenn zusätzliche Checks angezeigt werden sollen
@@ -435,79 +373,136 @@ export function AnalysisDashboard({
         </div>
       </div>
 
-      {/* Main Category Navigation */}
+      {/* Tab Navigation */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-1 overflow-x-auto">
-          {Object.entries(NAVIGATION_CONFIG).map(([key, config]) => {
-            const IconComponent = config.icon;
-            const isActive = activeCategory === key;
-            const loading = isLoading(key);
-            
-            return (
-              <button
-                key={key}
-                onClick={() => handleCategoryChange(key as keyof typeof NAVIGATION_CONFIG)}
-                className={`whitespace-nowrap py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
-                  isActive
-                    ? "border-primary-500 text-primary-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <IconComponent className="h-4 w-4" />
-                  <span>{config.label}</span>
-                  {loading ? (
-                    <Loader2 className="h-3 w-3 animate-spin text-primary-500" />
-                  ) : (
-                    <Badge variant="outline" className="bg-success-50 text-success-600">
-                      ✓
-                    </Badge>
-                  )}
-                  {config.tabs.length > 1 && (
-                    <ChevronDown className="h-3 w-3" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab("ux")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "ux"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Eye className="h-4 w-4" />
+              <span>UX Check</span>
+              <Badge variant="outline" className="bg-success-50 text-success-600">
+                ✓
+              </Badge>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("speed")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "speed"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Zap className="h-4 w-4" />
+              <span>Speed Test</span>
+              {(speedLoadingDesktop || speedLoadingMobile) ? (
+                <Loader2 className="h-3 w-3 animate-spin text-primary-500" />
+              ) : (
+                <Badge variant="outline" className="bg-green-50 text-green-600">
+                  ✓
+                </Badge>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("meta")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "meta"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Tags className="h-4 w-4" />
+              <span>Meta Tags</span>
+              {metaLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin text-primary-500" />
+              ) : (
+                <Badge variant="outline" className="bg-green-50 text-green-600">
+                  ✓
+                </Badge>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("favicon")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "favicon"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Image className="h-4 w-4" />
+              <span>Favicon & Icons</span>
+              {faviconLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin text-primary-500" />
+              ) : (
+                <Badge variant="outline" className="bg-success-50 text-success-600">
+                  ✓
+                </Badge>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("preview")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "preview"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Share2 className="h-4 w-4" />
+              <span>Social Preview</span>
+              {socialPreviewLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin text-primary-500" />
+              ) : (
+                <Badge variant="outline" className="bg-success-50 text-success-600">
+                  ✓
+                </Badge>
+              )}
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("geo")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "geo"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Bot className="h-4 w-4" />
+              <span>GEO Check</span>
+              <Badge variant="outline" className="bg-primary-50 text-primary-600">
+                NEW
+              </Badge>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("report")}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "report"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Download className="h-4 w-4" />
+              <span>PDF Report</span>
+            </div>
+          </button>
         </nav>
       </div>
-
-      {/* Sub-Navigation for Categories with Multiple Tabs */}
-      {getCurrentCategoryTabs().length > 1 && (
-        <div className="bg-gray-50 border-b border-gray-200">
-          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex space-x-1 py-3 overflow-x-auto">
-              {getCurrentCategoryTabs().map((tab) => {
-                const IconComponent = tab.icon;
-                const isActive = activeTab === tab.id;
-                
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`text-sm font-medium px-3 py-2 rounded-md transition-colors whitespace-nowrap ${
-                      isActive
-                        ? "bg-primary-100 text-primary-700"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <IconComponent className="h-3 w-3" />
-                      <span>{tab.label}</span>
-                      {tab.badge && (
-                        <Badge variant="outline" className="bg-primary-50 text-primary-600 text-xs">
-                          {tab.badge}
-                        </Badge>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </nav>
-        </div>
-      )}
 
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -559,7 +554,7 @@ export function AnalysisDashboard({
 
         {/* Right Column - Tab Content (66%) */}
         <div className="lg:col-span-2 space-y-6">
-          {activeCategory === "analysis" && activeTab === "ux" && (
+          {activeTab === "ux" && (
             <>
               {/* Overall Score */}
               <Card>
@@ -620,10 +615,7 @@ export function AnalysisDashboard({
                     <Button
                       variant="outline"
                       className="flex items-center"
-                      onClick={() => {
-                        setActiveCategory("reports");
-                        setActiveTab("report");
-                      }}
+                      onClick={() => setActiveTab("report")}
                     >
                       <Download className="h-4 w-4 mr-2" />
                       PDF-Report erhalten
@@ -634,44 +626,56 @@ export function AnalysisDashboard({
             </>
           )}
 
-          {activeCategory === "performance" && activeTab === "speed" && (
-            <div>
-              <PageSpeedCard url={analysis.url} analysisId={analysis.analysisId} />
-            </div>
+          {activeTab === "speed" && (
+            <>
+              <div>
+                <PageSpeedCard url={analysis.url} analysisId={analysis.analysisId} />
+              </div>
+            </>
           )}
 
-          {activeCategory === "performance" && activeTab === "geo" && (
-            <div>
-              <GeoCheckCard 
-                url={analysis.url} 
-                analysisId={analysis.analysisId}
-                onDataUpdate={saveGeoCheckData}
-              />
-            </div>
+          {activeTab === "meta" && (
+            <>
+              <div>
+                <MetaTagsCard url={analysis.url} />
+              </div>
+            </>
           )}
 
-          {activeCategory === "seo" && activeTab === "meta" && (
-            <div>
-              <MetaTagsCard url={analysis.url} />
-            </div>
+          {activeTab === "favicon" && (
+            <>
+              <div>
+                <FaviconCard url={analysis.url} />
+              </div>
+            </>
           )}
 
-          {activeCategory === "seo" && activeTab === "favicon" && (
-            <div>
-              <FaviconCard url={analysis.url} />
-            </div>
+          {activeTab === "preview" && (
+            <>
+              <div>
+                <SocialPreviewCard url={analysis.url} />
+              </div>
+            </>
           )}
 
-          {activeCategory === "seo" && activeTab === "preview" && (
-            <div>
-              <SocialPreviewCard url={analysis.url} />
-            </div>
+          {activeTab === "geo" && (
+            <>
+              <div>
+                <GeoCheckCard 
+                  url={analysis.url} 
+                  analysisId={analysis.analysisId}
+                  onDataUpdate={saveGeoCheckData}
+                />
+              </div>
+            </>
           )}
 
-          {activeCategory === "reports" && activeTab === "report" && (
-            <div>
-              <GetReportForm url={analysis.url} uxAnalysis={analysis} analysisId={analysis.analysisId} />
-            </div>
+          {activeTab === "report" && (
+            <>
+              <div>
+                <GetReportForm url={analysis.url} uxAnalysis={analysis} analysisId={analysis.analysisId} />
+              </div>
+            </>
           )}
         </div>
       </div>

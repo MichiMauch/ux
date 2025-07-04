@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 20,
     borderBottomWidth: 2,
-    borderBottomColor: "#3b82f6",
+    borderBottomColor: "#34CCCD", // primary-400
   },
   title: {
     fontSize: 24,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   tagName: {
     fontSize: 11,
     fontFamily: "Courier",
-    color: "#1d4ed8",
+    color: "#34CCCD", // primary-400
     flex: 1,
   },
   tagStatus: {
@@ -165,14 +165,14 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   websiteInfo: {
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#E6F9F9", // primary-50
     padding: 12,
     marginBottom: 15,
     borderRadius: 6,
   },
   websiteUrl: {
     fontSize: 12,
-    color: "#1d4ed8",
+    color: "#34CCCD", // primary-400
     fontWeight: "bold",
   },
   analysisDate: {
@@ -226,15 +226,15 @@ interface UXReportPdfProps {
 }
 
 const getScoreColor = (score: number): string => {
-  if (score >= 80) return "#10b981"; // green
-  if (score >= 60) return "#f59e0b"; // yellow
-  return "#ef4444"; // red
+  if (score >= 80) return "#3DDC97"; // success-500
+  if (score >= 60) return "#FFC260"; // warning-500
+  return "#FF6B6B"; // danger-500
 };
 
 const getScoreBorderColor = (score: number): string => {
-  if (score >= 80) return "#059669";
-  if (score >= 60) return "#d97706";
-  return "#dc2626";
+  if (score >= 80) return "#2BB06F"; // success-600
+  if (score >= 60) return "#E6A847"; // warning-600
+  return "#E64747"; // danger-600
 };
 
 const formatDate = (dateString: string): string => {
@@ -459,7 +459,7 @@ const UXReportPdf: React.FC<UXReportPdfProps> = ({ data }) => (
                     <Text
                       style={[
                         styles.tagStatus,
-                        { color: tag.present ? "#10b981" : "#ef4444" },
+                        { color: tag.present ? "#3DDC97" : "#FF6B6B" }, // success-500 : danger-500
                       ]}
                     >
                       {tag.present ? "✓" : "✗"}
